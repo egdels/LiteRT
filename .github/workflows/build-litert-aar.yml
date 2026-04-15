@@ -18,8 +18,8 @@ jobs:
         run: |
           docker build \
             -t litert_build_env \
-            -f docker_build/hermetic_build.Dockerfile \
-            docker_build/
+            -f ci/tflite-android.Dockerfile \
+            ci/
 
       - name: Build AAR
         run: |

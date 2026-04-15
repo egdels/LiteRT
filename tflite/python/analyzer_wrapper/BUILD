@@ -40,6 +40,6 @@ cc_library(
         "@flatbuffers//:runtime_cc",
         "@org_tensorflow//tensorflow/compiler/mlir/lite/schema:schema_utils",
         "@org_tensorflow//tensorflow/core:framework",
-        "@org_tensorflow//tensorflow/core/public:release_version",
+        "@org_tensorflow//tensorflow/core/public:version",
     ],
 )

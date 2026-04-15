@@ -199,7 +199,7 @@ cc_library(
     compatible_with = get_compatible_with_portable(),
     copts = tflite_copts_warnings(),
     deps = [
-        "@org_tensorflow//tensorflow/core/public:release_version",
+        "@org_tensorflow//tensorflow/core/public:version",
     ],
 )
 

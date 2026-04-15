@@ -45,7 +45,7 @@ limitations under the License.
 
 #include <vector>
 
-#include "tensorflow/compiler/mlir/lite/utils/string_utils.h"
+#include "third_party/string_utils/string_utils.h"
 #include "tflite/core/c/common.h"
 #include "tflite/string_type.h"
 

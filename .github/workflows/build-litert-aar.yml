@@ -38,6 +38,7 @@ jobs:
             -e TF_NEED_CUDA=0 \
             -e TF_NEED_ROCM=0 \
             -e TF_DOWNLOAD_CLANG=0 \
+            -e TF_NEED_CLANG=0 \
             -e TF_CONFIGURE_IOS=0 \
             litert_build_env \
             bash -lc '

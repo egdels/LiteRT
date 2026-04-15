@@ -82,6 +82,14 @@ test_suite(
     ],
 )
 
+cc_library(
+    name = "xnnpack_plugin_hdrs_only",
+    hdrs = ["xnnpack_plugin.h"],
+    compatible_with = get_compatible_with_portable(),
+    visibility = ["//visibility:public"],
+    deps = ["//tflite/core/acceleration/configuration/c:xnnpack_plugin_hdrs_only"],
+)
+
 cc_library_with_tflite_with_c_headers_test(
     name = "xnnpack_plugin",
     hdrs = ["xnnpack_plugin.h"],

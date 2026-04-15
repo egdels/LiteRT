@@ -157,6 +157,18 @@ cc_test(
     ],
 )
 
+cc_library(
+    name = "xnnpack_plugin_hdrs_only",
+    hdrs = ["xnnpack_plugin.h"],
+    compatible_with = get_compatible_with_portable(),
+    visibility = [
+        "//tflite:__subpackages__",
+    ],
+    deps = [
+        ":delegate_plugin",
+    ],
+)
+
 tflite_cc_library_with_c_headers_test(
     name = "xnnpack_plugin",
     srcs = ["xnnpack_plugin.cc"],

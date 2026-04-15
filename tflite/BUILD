@@ -882,7 +882,7 @@ cc_library(
         ":string",
         "//tflite/core/c:c_api_types",
         "//tflite/core/c:common",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite:string_utils",
+        "//third_party/string_utils",
     ],
 )
 

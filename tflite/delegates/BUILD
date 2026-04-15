@@ -69,8 +69,10 @@ cc_library(
         "//tflite/c:c_api_types",
         "//tflite/c:common",
         "//tflite/core:subgraph",
+        "//tflite/core/api:error_reporter",
         "//tflite/core/c:common",
         "//tflite/kernels:kernel_util",
+        "//third_party/allocation",
     ],
 )
 

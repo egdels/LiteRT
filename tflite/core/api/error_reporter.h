@@ -9,8 +9,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_CORE_API_ERROR_REPORTER_H_
-#define TENSORFLOW_LITE_CORE_API_ERROR_REPORTER_H_
+#ifndef TENSORFLOW_COMPILER_MLIR_LITE_CORE_API_ERROR_REPORTER_H_
+#define TENSORFLOW_COMPILER_MLIR_LITE_CORE_API_ERROR_REPORTER_H_
 #include <cstdarg>
 namespace tflite {
 /// A functor that reports error to supporting system. Invoked similar to
@@ -42,4 +42,4 @@ class ErrorReporter {
 #else  // TF_LITE_STRIP_ERROR_STRINGS
 #define TF_LITE_REPORT_ERROR(reporter, ...)
 #endif  // TF_LITE_STRIP_ERROR_STRINGS
-#endif  // TENSORFLOW_LITE_CORE_API_ERROR_REPORTER_H_
+#endif  // TENSORFLOW_COMPILER_MLIR_LITE_CORE_API_ERROR_REPORTER_H_

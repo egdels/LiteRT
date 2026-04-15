@@ -439,11 +439,13 @@ tflite_cc_library_with_c_headers_test(
         ":c_api_without_op_resolver",
         ":common",
         ":operator",
+        "//third_party/allocation",
         "//tflite:builtin_ops",
         "//tflite:framework",
         "//tflite/c:c_api_internal",
         "//tflite/c:c_api_types",
         "//tflite/core:framework",
+        "//tflite/core/api:error_reporter",
         "//tflite/profiling/telemetry:profiler",
     ],
     alwayslink = 1,  # Why?? TODO(b/161243354): eliminate this.

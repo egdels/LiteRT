@@ -482,12 +482,11 @@ cc_library(
     name = "allocation",
     hdrs = [
         "allocation.h",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite:allocation.h",
     ],
     compatible_with = get_compatible_with_portable(),
     copts = tflite_copts_warnings(),
     deps = [
-        "@org_tensorflow//tensorflow/compiler/mlir/lite:allocation",
+        "//third_party/allocation",
         "//tflite/core/api:error_reporter",
     ],
 )

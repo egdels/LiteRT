@@ -841,6 +841,7 @@ cc_library(
     ],
     deps = [
         ":util",
+        "//tflite/core/api:error_reporter",
         "//tflite/core/api:op_resolver",
         "//tflite/core/api:op_resolver_internal",
         "//tflite/core/c:common",

@@ -302,9 +302,7 @@ tflite_cc_library_with_c_headers_test(
         "@org_tensorflow//tensorflow/compiler/mlir/lite/experimental/lrt:__subpackages__",
         "@org_tensorflow//third_party/odml/litert/litert:__subpackages__",
     ] + c_api_visibility_allowlist(),
-    deps = [
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core/c:tflite_common",
-    ],
+    deps = [],
 )
 
 # Test the C extension API code.
@@ -365,7 +363,6 @@ tflite_cc_library_with_c_headers_test(
     deps = [
         ":c_api_types",
         "//tflite:tflite_kernel_use_xnnpack_optional",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core/c:tflite_common",
     ] + select({
         "//tflite:tensorflow_profiler_config": [
             "//tflite:macros",

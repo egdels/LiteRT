@@ -192,7 +192,6 @@ kt_android_library(
         "src/main/kotlin/com/google/ai/edge/litert/Model.kt",
         "src/main/kotlin/com/google/ai/edge/litert/ModelProvider.kt",
         "src/main/kotlin/com/google/ai/edge/litert/TensorBuffer.kt",
-        "src/main/kotlin/com/google/ai/edge/litert/deployment/AiPackModelProvider.kt",
     ],
     exports_manifest = 1,
     manifest = "src/main/AndroidManifest.xml",
@@ -200,11 +199,9 @@ kt_android_library(
     deps = [
         ":litert_kotlin_api_native_deps",  # buildcleaner: keep
         "@litert_maven//:androidx_lifecycle_lifecycle_common",
-        "@litert_maven//:com_google_android_play_ai_delivery",
         "@litert_maven//:com_google_guava_guava",
         "@litert_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_android",
         "@litert_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_guava",
-        "@litert_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_play_services",
     ],
 )
 

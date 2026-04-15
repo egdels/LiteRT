@@ -708,7 +708,7 @@ BUILTIN_KERNEL_SRCS = [
     "stablehlo_add.cc",
     "stablehlo_and.cc",
     "stablehlo_composite.cc",
-    "stablehlo_case.cc",
+    # "stablehlo_case.cc",  # Disabled: uses TfLiteStablehloCaseParams not in pinned TF submodule
     "stablehlo_multiply.cc",
     "stablehlo_pad.cc",
     "stablehlo_reduce_window.cc",

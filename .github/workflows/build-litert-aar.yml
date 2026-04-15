@@ -28,10 +28,10 @@ jobs:
             -v "$PWD:/litert_build" \
             -e TF_SET_ANDROID_WORKSPACE=1 \
             -e ANDROID_SDK_HOME=/android/sdk \
-            -e ANDROID_SDK_API_LEVEL=34 \
-            -e ANDROID_BUILD_TOOLS_VERSION=34.0.0 \
+            -e ANDROID_SDK_API_LEVEL=35 \
+            -e ANDROID_BUILD_TOOLS_VERSION=35.0.1 \
             -e ANDROID_NDK_HOME=/android/ndk \
-            -e ANDROID_NDK_API_LEVEL=28 \
+            -e ANDROID_NDK_API_LEVEL=21 \
             -e CC_OPT_FLAGS="-Wno-sign-compare" \
             -e PYTHON_BIN_PATH=/usr/bin/python3 \
             -e PYTHON_LIB_PATH=/usr/lib/python3/dist-packages \
@@ -41,16 +41,20 @@ jobs:
             -e TF_CONFIGURE_IOS=0 \
             litert_build_env \
             bash -lc '
+              cd /litert_build/third_party/tensorflow && \
+              yes "" | ./configure && \
+              cp .tf_configure.bazelrc /litert_build/ && \
+              cd /litert_build && \
               bazel build -c opt --cxxopt=--std=c++17 \
                 --config=android_arm64 \
                 --fat_apk_cpu=x86,x86_64,arm64-v8a,armeabi-v7a \
                 --define=android_dexmerger_tool=d8_dexmerger \
                 --define=android_incremental_dexing_tool=d8_dexbuilder \
-                //tensorflow/lite/java:tensorflow-lite
+                //tflite/java:tensorflow-lite
             '
 
       - name: Upload AAR
         uses: actions/upload-artifact@v4
         with:
           name: tensorflow-lite-aar-v1.4.1
-          path: bazel-bin/tensorflow/lite/java/*.aar
+          path: bazel-bin/tflite/java/*.aar

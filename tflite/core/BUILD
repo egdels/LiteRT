@@ -72,7 +72,7 @@ cc_library(
         "//tflite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
         "@org_tensorflow//tensorflow/compiler/mlir/lite/core:model_builder_base",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/experimental/remat:metadata_util",
+        "//third_party/metadata_util",
     ],
 )
 
@@ -143,7 +143,7 @@ cc_library(
         "//tflite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
         "@org_tensorflow//tensorflow/compiler/mlir/lite/core:model_builder_base",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/experimental/remat:metadata_util",
+        "//third_party/metadata_util",
     ],
     alwayslink = 1,  # TODO(b/161243354): eliminate this.
 )
@@ -225,7 +225,7 @@ cc_library(
         "//tflite/schema:schema_utils",
         "@flatbuffers//:runtime_cc",
         "@org_tensorflow//tensorflow/compiler/mlir/lite/core:model_builder_base",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/experimental/remat:metadata_util",
+        "//third_party/metadata_util",
         "@org_tensorflow//tensorflow/compiler/mlir/lite/schema:schema_fbs",
         "@org_tensorflow//tensorflow/compiler/mlir/lite/schema:schema_utils",
         "@ruy//ruy:denormal",
@@ -293,7 +293,7 @@ cc_library(
         "//tflite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
         "@org_tensorflow//tensorflow/compiler/mlir/lite/core:model_builder_base",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/experimental/remat:metadata_util",
+        "//third_party/metadata_util",
     ],
     alwayslink = 1,  # TODO(b/161243354): eliminate this.
 )
@@ -491,7 +491,7 @@ cc_library(
         "//tflite/profiling:root_profiler",
         "//tflite/profiling/telemetry",
         "//tflite/schema:schema_fbs",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/experimental/remat:metadata_util",
+        "//third_party/metadata_util",
     ] + select({
         "//tflite:tflite_use_simple_memory_planner": [
             "//tflite:simple_planner",

@@ -71,7 +71,7 @@ cc_library(
         "//tflite/profiling/telemetry/c:telemetry_setting_internal",
         "//tflite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core:model_builder_base",
+        "//third_party/model_builder_base",
         "//third_party/metadata_util",
     ],
 )
@@ -142,7 +142,7 @@ cc_library(
         "//tflite/profiling/telemetry/c:telemetry_setting_internal",
         "//tflite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core:model_builder_base",
+        "//third_party/model_builder_base",
         "//third_party/metadata_util",
     ],
     alwayslink = 1,  # TODO(b/161243354): eliminate this.
@@ -224,7 +224,7 @@ cc_library(
         "//tflite/schema:schema_fbs",
         "//tflite/schema:schema_utils",
         "@flatbuffers//:runtime_cc",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core:model_builder_base",
+        "//third_party/model_builder_base",
         "//third_party/metadata_util",
         "@org_tensorflow//tensorflow/compiler/mlir/lite/schema:schema_fbs",
         "@org_tensorflow//tensorflow/compiler/mlir/lite/schema:schema_utils",
@@ -292,7 +292,7 @@ cc_library(
         "//tflite/profiling/telemetry/c:telemetry_setting_internal",
         "//tflite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core:model_builder_base",
+        "//third_party/model_builder_base",
         "//third_party/metadata_util",
     ],
     alwayslink = 1,  # TODO(b/161243354): eliminate this.
@@ -307,7 +307,7 @@ cc_library(
     deps = [
         "//tflite:stderr_reporter",
         "//tflite/core/api:error_reporter",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core:model_builder_base",
+        "//third_party/model_builder_base",
     ],
     alwayslink = 1,
 )
@@ -347,7 +347,7 @@ cc_test(
         "//tflite/core/kernels:builtin_ops",
         "//tflite/testing:util",
         "@com_google_googletest//:gtest_main",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core:model_builder_base",
+        "//third_party/model_builder_base",
     ],
 )
 

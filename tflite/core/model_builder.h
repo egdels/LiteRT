@@ -30,7 +30,7 @@ limitations under the License.
 
 #include <memory>
 
-#include "tensorflow/compiler/mlir/lite/core/model_builder_base.h"  // IWYU pragma: export
+#include "third_party/model_builder_base/model_builder_base.h"  // IWYU pragma: export
 #include "tflite/core/api/error_reporter.h"
 #include "tflite/stderr_reporter.h"
 

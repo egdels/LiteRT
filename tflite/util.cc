@@ -677,12 +677,11 @@ int GetBuiltinDataSize(BuiltinOperator op) {
       return sizeof(TfLiteReduceWindowParams);
     case BuiltinOperator_STABLEHLO_COMPOSITE:
       return sizeof(TfLiteStablehloCompositeParams);
-    case BuiltinOperator_STABLEHLO_SHIFT_LEFT:
-      return 0;
-    case BuiltinOperator_STABLEHLO_CBRT:
-      return 0;
-    case BuiltinOperator_STABLEHLO_CASE:
-      return sizeof(TfLiteStablehloCaseParams);
+    // The following operators are defined in newer schema versions
+    // not present in the pinned TF submodule and are excluded:
+    // BuiltinOperator_STABLEHLO_SHIFT_LEFT
+    // BuiltinOperator_STABLEHLO_CBRT
+    // BuiltinOperator_STABLEHLO_CASE
   }
   return 0;
 }

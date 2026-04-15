@@ -96,6 +96,19 @@ load("@org_tensorflow//tensorflow:workspace0.bzl", "tf_workspace0")
 
 tf_workspace0()
 
+# Stub CUDA/NCCL repositories for non-CUDA builds (e.g. Android).
+new_local_repository(
+    name = "local_config_cuda",
+    build_file_content = "# empty",
+    path = "third_party/cuda_stub",
+)
+
+new_local_repository(
+    name = "local_config_nccl",
+    build_file_content = "# empty",
+    path = "third_party/cuda_stub",
+)
+
 load("//third_party/tqdm:workspace.bzl", tqdm = "repo")
 
 tqdm()

@@ -40,7 +40,7 @@ limitations under the License.
 #include <utility>
 #include <vector>
 
-#include "tensorflow/compiler/mlir/lite/allocation.h"
+#include "tflite/allocation.h"
 #include "third_party/metadata_util/metadata_util.h"
 #include "tflite/allocation.h"
 #include "tflite/core/api/error_reporter.h"

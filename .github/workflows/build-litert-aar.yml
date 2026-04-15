@@ -56,14 +56,13 @@ jobs:
                 --define=android_incremental_dexing_tool=d8_dexbuilder \
                 --define=tflite_with_xnnpack=false \
                 --define=tflite_kernel_use_xnnpack=false \
-                //tflite/java:tensorflow-lite
+                //tflite/java:tensorflow-lite && \
+              mkdir -p /litert_build/output && \
+              cp bazel-bin/tflite/java/tensorflow-lite.aar /litert_build/output/
             '
-
-      - name: Copy AAR from bazel-bin
+      - name: Fix output permissions
         run: |
-          mkdir -p output
-          sudo cp bazel-bin/tflite/java/tensorflow-lite.aar output/
-          sudo chown $(id -u):$(id -g) output/*
+          sudo chown -R $(id -u):$(id -g) output/
 
       - name: Upload AAR
         uses: actions/upload-artifact@v4

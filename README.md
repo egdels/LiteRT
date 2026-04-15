@@ -1,3 +1,15 @@
+# LiteRT (Fork)
+
+> **⚠️ Fork Notice:** This is a fork of [google-ai-edge/LiteRT](https://github.com/google-ai-edge/LiteRT) (version 1.4.1), maintained to enable **building the LiteRT Android AAR from source**. This is required for inclusion in [F-Droid](https://f-droid.org/), which mandates that all dependencies are built from FLOSS source code.
+>
+> The upstream LiteRT project publishes pre-built AARs to Maven Central, but those artifacts include build-time references to proprietary Google Play libraries (`com.google.android.play:ai-delivery`), which prevents F-Droid from accepting apps that depend on them.
+>
+> This fork contains CI workflow and build system patches (Dockerfile, WORKSPACE, Bazel BUILD files, visibility workarounds) to produce a functionally equivalent `tensorflow-lite.aar` entirely from source. See [CHANGELOG.md](./CHANGELOG.md) for a detailed list of changes.
+>
+> **No application logic has been modified.** The resulting AAR is functionally identical to the upstream release, minus the XNNPACK delegate (disabled due to API version mismatch with the pinned dependency).
+
+---
+
 # LiteRT Next
 
 LiteRT Next is a new set of APIs that improves upon LiteRT, particularly in

@@ -24,6 +24,8 @@ RUN cd ${ANDROID_DEV_HOME} && \
     unzip ${ANDROID_SDK_FILENAME} -d /tmp && \
     mv /tmp/cmdline-tools ${ANDROID_SDK_HOME}/cmdline-tools/latest && \
     rm ${ANDROID_SDK_FILENAME}
+RUN yes | sdkmanager --licenses > /dev/null 2>&1 && \
+    sdkmanager "platforms;android-${ANDROID_API_LEVEL}" "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" "platform-tools"
 
 # Install Android NDK.
 ENV ANDROID_NDK_FILENAME android-ndk-r25b-linux.zip

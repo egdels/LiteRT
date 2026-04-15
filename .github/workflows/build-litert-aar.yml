@@ -59,8 +59,14 @@ jobs:
                 //tflite/java:tensorflow-lite
             '
 
+      - name: Copy AAR from bazel-bin
+        run: |
+          mkdir -p output
+          sudo cp bazel-bin/tflite/java/tensorflow-lite.aar output/
+          sudo chown $(id -u):$(id -g) output/*
+
       - name: Upload AAR
         uses: actions/upload-artifact@v4
         with:
           name: tensorflow-lite-aar-v1.4.1
-          path: bazel-bin/tflite/java/*.aar
+          path: output/*.aar

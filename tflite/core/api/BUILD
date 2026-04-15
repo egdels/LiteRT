@@ -74,32 +74,24 @@ cc_library(
 
 cc_library(
     name = "error_reporter",
-    hdrs = [
-        "error_reporter.h",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core/api:error_reporter.h",
-    ],
+    srcs = ["error_reporter.cc"],
+    hdrs = ["error_reporter.h"],
     compatible_with = get_compatible_with_portable(),
     copts = tflite_copts(),
     visibility = [
         "//visibility:public",
     ],
-    deps = [
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core/api:error_reporter",
-    ],
+    deps = [],
 )
 
 cc_library(
     name = "verifier",
-    hdrs = [
-        "verifier.h",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core/api:verifier.h",
-    ],
+    hdrs = ["verifier.h"],
     compatible_with = get_compatible_with_portable(),
     copts = tflite_copts(),
     visibility = ["//visibility:public"],
     deps = [
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core/api:error_reporter",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core/api:verifier",
+        ":error_reporter",
     ],
 )
 
@@ -126,7 +118,7 @@ cc_test(
         "//tflite/schema:schema_fbs",
         "@com_google_googletest//:gtest_main",
         "@flatbuffers//:runtime_cc",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core/api:error_reporter",
+        ":error_reporter",
         "@org_tensorflow//tensorflow/compiler/mlir/lite/schema:schema_conversion_utils",
     ],
 )
@@ -159,6 +151,6 @@ cc_test(
         "//tflite/schema:schema_fbs",
         "@com_google_googletest//:gtest_main",
         "@flatbuffers//:runtime_cc",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core/api:error_reporter",
+        ":error_reporter",
     ],
 )

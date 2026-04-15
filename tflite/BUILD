@@ -488,7 +488,7 @@ cc_library(
     copts = tflite_copts_warnings(),
     deps = [
         "@org_tensorflow//tensorflow/compiler/mlir/lite:allocation",
-        "@org_tensorflow//tensorflow/compiler/mlir/lite/core/api:error_reporter",
+        "//tflite/core/api:error_reporter",
     ],
 )
 

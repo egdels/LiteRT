@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -9,23 +9,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-/// \file
-///
-/// Abstract interface for verifying a model.
-#ifndef TENSORFLOW_LITE_CORE_API_VERIFIER_H_
-#define TENSORFLOW_LITE_CORE_API_VERIFIER_H_
 #include "tflite/core/api/error_reporter.h"
+#include <cstdarg>
 namespace tflite {
-/// Abstract interface that verifies whether a given model is legit.
-/// It facilitates the use-case to verify and build a model without loading it
-/// twice.
-/// (See also "tensorflow/lite/tools/verifier.h".)
-class TfLiteVerifier {
- public:
-  /// Returns true if the model is legit.
-  virtual bool Verify(const char* data, int length,
-                      ErrorReporter* reporter) = 0;
-  virtual ~TfLiteVerifier() {}
-};
+int ErrorReporter::Report(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  int code = Report(format, args);
+  va_end(args);
+  return code;
+}
+int ErrorReporter::ReportError(void*, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  int code = Report(format, args);
+  va_end(args);
+  return code;
+}
 }  // namespace tflite
-#endif  // TENSORFLOW_LITE_CORE_API_VERIFIER_H_

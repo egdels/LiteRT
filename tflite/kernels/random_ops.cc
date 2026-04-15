@@ -17,8 +17,8 @@ limitations under the License.
 #include <cstdint>
 #include <random>
 
-#include "xla/tsl/lib/random/philox_random.h"
-#include "xla/tsl/lib/random/random_distributions_utils.h"
+#include "third_party/tsl_random/philox_random.h"
+#include "third_party/tsl_random/random_distributions_utils.h"
 #include "tflite/core/c/builtin_op_data.h"
 #include "tflite/kernels/internal/tensor_ctypes.h"
 #include "tflite/kernels/kernel_util.h"

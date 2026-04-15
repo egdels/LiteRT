@@ -826,8 +826,8 @@ cc_library(
         "//tflite:array",
         "//tflite:builtin_ops",
         "//tflite:cc_api_stable",
-        "@local_xla//third_party/tsl/tsl/lib/random:philox_random",
-        "@local_xla//third_party/tsl/tsl/lib/random:random_distributions_utils",
+        "//third_party/tsl_random:philox_random",
+        "//third_party/tsl_random:random_distributions_utils",
         "//tflite/core/c:c_api_types",
         # TODO(b/179298174): Move out from the experimental directory.
         "//tflite/experimental/resource",

@@ -11,3 +11,6 @@ def cuda_default_copts():
 
 def cuda_gpu_architectures():
     return []
+
+def cuda_library(**kwargs):
+    native.cc_library(**kwargs)

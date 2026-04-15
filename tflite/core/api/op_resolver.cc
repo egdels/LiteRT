@@ -15,7 +15,7 @@ limitations under the License.
 
 #include "tflite/core/api/op_resolver.h"
 
-#include "tensorflow/compiler/mlir/lite/core/api/error_reporter.h"
+#include "tflite/core/api/error_reporter.h"
 #include "tensorflow/compiler/mlir/lite/schema/schema_utils.h"
 #include "tflite/core/c/common.h"
 #include "tflite/schema/schema_generated.h"

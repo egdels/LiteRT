@@ -18,7 +18,7 @@ limitations under the License.
 // LINT.IfChange
 #include <string>
 
-#include "tensorflow/compiler/mlir/lite/core/api/error_reporter.h"
+#include "tflite/core/api/error_reporter.h"
 
 namespace tflite {
 

@@ -14,3 +14,6 @@ def cuda_gpu_architectures():
 
 def cuda_library(**kwargs):
     native.cc_library(**kwargs)
+
+def if_cuda_exec(if_true, if_false = []):
+    return if_false

@@ -492,6 +492,8 @@ cc_library(
         "//tflite/profiling/telemetry",
         "//tflite/schema:schema_fbs",
         "//third_party/metadata_util",
+        "//third_party/allocation",
+        "//tflite/core/api:error_reporter",
     ] + select({
         "//tflite:tflite_use_simple_memory_planner": [
             "//tflite:simple_planner",

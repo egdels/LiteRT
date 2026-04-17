@@ -127,6 +127,7 @@ jobs:
           # in the output base. This means the workflow does NOT fully validate
           # that the repo cache alone is sufficient for a cold-start build.
           # True cold-start validation must be done on a clean VM.
+          bazel shutdown
           bazel clean
           info "Repository cache populated at $CACHE_DIR"
           du -sh "$CACHE_DIR"
@@ -143,6 +144,7 @@ jobs:
           # so any attempt to reach the internet will fail immediately.
           sudo unshare --net -- env \
             HOME="$HOME" \
+            USER="$USER" \
             PATH="$PATH" \
             JAVA_HOME="$JAVA_HOME" \
             FDROID_BUILD=1 \
@@ -151,6 +153,7 @@ jobs:
             ANDROID_NDK_HOME="$ANDROID_NDK_HOME" \
             BAZEL_REPO_CACHE="$BAZEL_REPO_CACHE" \
             FAT_APK_CPUS="${{ inputs.fat_apk_cpus || 'arm64-v8a,armeabi-v7a,x86_64,x86' }}" \
+            BAZEL_EXTRA_ARGS="--batch" \
             ./ci/build-fdroid.sh
 
       # ---------------------------------------------------------------

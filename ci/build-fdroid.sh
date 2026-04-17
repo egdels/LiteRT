@@ -394,6 +394,12 @@ if [ -n "${BAZEL_REPO_CACHE:-}" ]; then
   fi
 fi
 
+# Allow extra Bazel args (e.g. --batch for network-isolated environments)
+if [ -n "${BAZEL_EXTRA_ARGS:-}" ]; then
+  read -ra _EXTRA <<< "$BAZEL_EXTRA_ARGS"
+  BAZEL_FLAGS+=("${_EXTRA[@]}")
+fi
+
 bazel build "${BAZEL_FLAGS[@]}" //tflite/java:tensorflow-lite
 
 # ---------------------------------------------------------------------------

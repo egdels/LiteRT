@@ -152,6 +152,8 @@ jobs:
             PATH="$PATH" \
             JAVA_HOME="$JAVA_HOME" \
             FDROID_BUILD=1 \
+            USE_LOCAL_TF=true \
+            TF_LOCAL_SOURCE_PATH="$GITHUB_WORKSPACE/third_party/tensorflow" \
             ANDROID_HOME="$ANDROID_HOME" \
             ANDROID_SDK_HOME="$ANDROID_HOME" \
             ANDROID_NDK_HOME="$ANDROID_NDK_HOME" \

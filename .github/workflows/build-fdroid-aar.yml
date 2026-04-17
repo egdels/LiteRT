@@ -151,8 +151,10 @@ jobs:
           #
           # We need --batch because unshare --net blocks the Bazel client-server
           # socket. We grant root access to the existing output base.
-          BAZEL_OUTPUT_BASE="$(bazel info output_base 2>/dev/null || echo "$HOME/.cache/bazel")"
-          sudo chmod -R a+rwx "$HOME/.cache/bazel" 2>/dev/null || true
+          # Ensure root (via sudo unshare) can access the Bazel cache from Phase 1.
+          # Pre-create _bazel_$USER in case it doesn't exist yet, then open permissions.
+          mkdir -p "$HOME/.cache/bazel/_bazel_$(whoami)" 2>/dev/null || true
+          sudo chmod -R a+rwx "$HOME/.cache/bazel"
           sudo unshare --net -- env \
             HOME="$HOME" \
             USER="$USER" \

@@ -134,11 +134,18 @@ jobs:
       # ---------------------------------------------------------------
       # Phase 2: Build in strict F-Droid mode (no network)
       # ---------------------------------------------------------------
-      - name: 'Phase 2: Build AAR (FDROID_BUILD=1, strict mode)'
+      - name: 'Phase 2: Build AAR (FDROID_BUILD=1, strict mode, NO NETWORK)'
         if: ${{ inputs.fdroid_strict != false }}
         run: |
           chmod +x ci/build-fdroid.sh
-          FDROID_BUILD=1 \
+          # Enforce no network access — simulates F-Droid's offline sandbox.
+          # unshare --net creates a network namespace with only loopback,
+          # so any attempt to reach the internet will fail immediately.
+          sudo unshare --net -- env \
+            HOME="$HOME" \
+            PATH="$PATH" \
+            JAVA_HOME="$JAVA_HOME" \
+            FDROID_BUILD=1 \
             ANDROID_HOME="$ANDROID_HOME" \
             ANDROID_SDK_HOME="$ANDROID_HOME" \
             ANDROID_NDK_HOME="$ANDROID_NDK_HOME" \

@@ -9,18 +9,25 @@ on:
       fat_apk_cpus:
         description: 'Comma-separated list of Android ABIs to build'
         required: false
-        default: 'arm64-v8a,armeabi-v7a'
+        default: 'arm64-v8a'
         type: string
+      fdroid_strict:
+        description: 'Run in FDROID_BUILD=1 strict mode (two-phase build)'
+        required: false
+        default: true
+        type: boolean
 
 # Pinned versions — keep in sync with ci/build-fdroid.sh
 env:
   PINNED_SDK_API_LEVEL: '35'
   PINNED_BUILD_TOOLS: '35.0.1'
   PINNED_NDK_VERSION: '25.2.9519653'
+  BAZEL_VERSION: '7.4.1'
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
 
     steps:
       - name: Checkout
@@ -34,6 +41,24 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # ---------------------------------------------------------------
+      # Install Bazel directly (not Bazelisk) — matches F-Droid sudo:
+      # ---------------------------------------------------------------
+      - name: Install Bazel ${{ env.BAZEL_VERSION }}
+        run: |
+          BAZEL_URL="https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-linux-x86_64"
+          curl -fSL -o /usr/local/bin/bazel "$BAZEL_URL"
+          chmod +x /usr/local/bin/bazel
+          bazel --version
+
+      # ---------------------------------------------------------------
+      # Install Android SDK & NDK with exact pinned versions
+      # ---------------------------------------------------------------
       - name: Install Android SDK & NDK
         run: |
           CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip"
@@ -56,17 +81,90 @@ jobs:
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/${PINNED_NDK_VERSION}" >> "$GITHUB_ENV"
 
-      - name: Build AAR
+      # ---------------------------------------------------------------
+      # Phase 1: Generate repository cache (with network)
+      # Only needed for FDROID_BUILD=1 strict mode
+      # ---------------------------------------------------------------
+      - name: 'Phase 1: Generate Bazel repository cache'
+        if: ${{ inputs.fdroid_strict != false }}
+        run: |
+          export USE_LOCAL_TF=true
+          export TF_LOCAL_SOURCE_PATH="$GITHUB_WORKSPACE/third_party/tensorflow"
+
+          # Use the canonical F-Droid bazelrc
+          cp ci/tf_configure.bazelrc.fdroid .tf_configure.bazelrc
+
+          CACHE_DIR="$RUNNER_TEMP/bazel-repo-cache"
+          mkdir -p "$CACHE_DIR"
+
+          info() { echo "==> $*"; }
+          info "Fetching all dependencies into repository cache..."
+
+          bazel fetch //tflite/java:tensorflow-lite \
+            -c opt \
+            --cxxopt=--std=c++17 \
+            --config=android \
+            --cpu=armeabi-v7a \
+            --fat_apk_cpu="${{ inputs.fat_apk_cpus || 'arm64-v8a' }}" \
+            --define=android_dexmerger_tool=d8_dexmerger \
+            --define=android_incremental_dexing_tool=d8_dexbuilder \
+            --define=tflite_with_xnnpack=false \
+            --define=tflite_kernel_use_xnnpack=false \
+            --repo_env=HERMETIC_PYTHON_VERSION=3.12 \
+            --repository_cache="$CACHE_DIR"
+
+          echo "BAZEL_REPO_CACHE=$CACHE_DIR" >> "$GITHUB_ENV"
+
+          # Clean Bazel state so Phase 2 starts fresh
+          bazel clean --expunge
+          info "Repository cache populated at $CACHE_DIR"
+          du -sh "$CACHE_DIR"
+
+      # ---------------------------------------------------------------
+      # Phase 2: Build in strict F-Droid mode (no network)
+      # ---------------------------------------------------------------
+      - name: 'Phase 2: Build AAR (FDROID_BUILD=1, strict mode)'
+        if: ${{ inputs.fdroid_strict != false }}
+        run: |
+          chmod +x ci/build-fdroid.sh
+          FDROID_BUILD=1 \
+            ANDROID_HOME="$ANDROID_HOME" \
+            ANDROID_NDK_HOME="$ANDROID_NDK_HOME" \
+            BAZEL_REPO_CACHE="$BAZEL_REPO_CACHE" \
+            FAT_APK_CPUS="${{ inputs.fat_apk_cpus || 'arm64-v8a' }}" \
+            ./ci/build-fdroid.sh
+
+      # ---------------------------------------------------------------
+      # Fallback: Developer mode build (no strict mode)
+      # ---------------------------------------------------------------
+      - name: 'Build AAR (developer mode)'
+        if: ${{ inputs.fdroid_strict == false }}
         run: |
           chmod +x ci/build-fdroid.sh
           ./ci/build-fdroid.sh
         env:
-          FAT_APK_CPUS: ${{ inputs.fat_apk_cpus || 'arm64-v8a,armeabi-v7a' }}
+          FAT_APK_CPUS: ${{ inputs.fat_apk_cpus || 'arm64-v8a' }}
           ANDROID_SDK_API_LEVEL: ${{ env.PINNED_SDK_API_LEVEL }}
           ANDROID_BUILD_TOOLS_VERSION: ${{ env.PINNED_BUILD_TOOLS }}
+
+      # ---------------------------------------------------------------
+      # Verify output
+      # ---------------------------------------------------------------
+      - name: Verify AAR exists and print checksum
+        run: |
+          ls -la output/tensorflow-lite.aar
+          sha256sum output/tensorflow-lite.aar
 
       - name: Upload AAR
         uses: actions/upload-artifact@v4
         with:
           name: tensorflow-lite-aar
           path: output/*.aar
+
+      - name: Upload repository cache (for F-Droid)
+        if: ${{ inputs.fdroid_strict != false }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: bazel-repo-cache
+          path: ${{ env.BAZEL_REPO_CACHE }}
+          retention-days: 30

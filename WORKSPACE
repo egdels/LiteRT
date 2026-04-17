@@ -123,8 +123,8 @@ maven_install(
         "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1",
         "org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.10.1",
     ],
+    maven_install_json = "//:maven_install.json",
     repositories = [
-        "https://jcenter.bintray.com",
         "https://maven.google.com",
         "https://dl.google.com/dl/android/maven2",
         "https://repo1.maven.org/maven2",

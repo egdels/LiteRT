@@ -31,11 +31,11 @@ load("//litert:tensorflow_source_rules.bzl", "tensorflow_source_repo")
 
 tensorflow_source_repo(
     name = "org_tensorflow",
+    # Remote fallback intentionally removed for F-Droid builds.
+    # Always use USE_LOCAL_TF=true with TF_LOCAL_SOURCE_PATH.
     sha256 = "",
-    strip_prefix = "tensorflow-master",
-    urls = [
-        "https://github.com/tensorflow/tensorflow/archive/master.tar.gz",
-    ],
+    strip_prefix = "",
+    urls = [],
 )
 
 # Initialize the TensorFlow repository and all dependencies.
@@ -152,27 +152,21 @@ load("//third_party/stblib:workspace.bzl", stblib = "repo")
 stblib()
 
 # VENDOR SDKS ######################################################################################
-
-# QUALCOMM ---------------------------------------------------------------------------------------
-
-# The actual macro call will be set during configure for now.
-load("//third_party/qairt:workspace.bzl", "qairt")
-
-qairt()
-
-# MEDIATEK ---------------------------------------------------------------------------------------
-
-# Currently only works with local sdk
-load("//third_party/neuro_pilot:workspace.bzl", "neuro_pilot")
-
-neuro_pilot()
-
-# GOOGLE TENSOR ----------------------------------------------------------------------------------
-load("//third_party/google_tensor:workspace.bzl", "google_tensor")
-
-google_tensor()
-
-# LiteRT GPU ----------------------------------------------------------------------------------
-load("//third_party/litert_gpu:workspace.bzl", "litert_gpu")
-
-litert_gpu()
+# NOTE: Vendor SDK loads (Qualcomm QAIRT, MediaTek NeuroPilot, Google Tensor,
+# LiteRT GPU) are disabled for F-Droid builds. They download proprietary
+# binaries without SHA256 verification and are not needed for the base
+# tensorflow-lite.aar build.
+#
+# To re-enable for development with vendor delegates, uncomment below:
+#
+# load("//third_party/qairt:workspace.bzl", "qairt")
+# qairt()
+#
+# load("//third_party/neuro_pilot:workspace.bzl", "neuro_pilot")
+# neuro_pilot()
+#
+# load("//third_party/google_tensor:workspace.bzl", "google_tensor")
+# google_tensor()
+#
+# load("//third_party/litert_gpu:workspace.bzl", "litert_gpu")
+# litert_gpu()

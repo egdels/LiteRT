@@ -61,9 +61,12 @@ jobs:
       # ---------------------------------------------------------------
       - name: Install Android SDK & NDK
         run: |
+          # Pin cmdline-tools version and verify integrity
           CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip"
+          CMDLINE_TOOLS_SHA256="7ec965280a073311c339e571cd5de778b9975026cfcbe79f2b1cdcb1e15317ee"
           mkdir -p "$HOME/android-sdk/cmdline-tools"
           curl -fSL -o /tmp/cmdline-tools.zip "$CMDLINE_TOOLS_URL"
+          echo "${CMDLINE_TOOLS_SHA256}  /tmp/cmdline-tools.zip" | sha256sum -c -
           unzip -q /tmp/cmdline-tools.zip -d /tmp
           mv /tmp/cmdline-tools "$HOME/android-sdk/cmdline-tools/latest"
           rm /tmp/cmdline-tools.zip
@@ -120,6 +123,10 @@ jobs:
           # NOTE: Do NOT use --expunge here. It destroys the output base,
           # forcing Bazel to re-evaluate the WORKSPACE from scratch, which
           # triggers a cycle error (local_xla <-> org_tensorflow).
+          # LIMITATION: Phase 2 will still have external repos from Phase 1
+          # in the output base. This means the workflow does NOT fully validate
+          # that the repo cache alone is sufficient for a cold-start build.
+          # True cold-start validation must be done on a clean VM.
           bazel clean
           info "Repository cache populated at $CACHE_DIR"
           du -sh "$CACHE_DIR"

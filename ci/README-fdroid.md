@@ -21,7 +21,8 @@ Convenient but not reproducible.
 - **No auto-detection** — fails if pinned SDK/NDK/build-tools versions are missing
 - **No Bazelisk download** — requires `bazel` pre-installed
 - **No `./configure`** — uses canonical `ci/tf_configure.bazelrc.fdroid`
-- **Deterministic output** — `SOURCE_DATE_EPOCH`, `--stamp=false`, AAR timestamp normalization
+- **Deterministic output** — `SOURCE_DATE_EPOCH=315532800` (1980-01-01), `--stamp=false`,
+  `--workspace_status_command=/bin/true`, AAR timestamp normalization with `zip -X -0`
 - **SHA256 checksum** printed for the output AAR
 
 Required environment variables:
@@ -94,6 +95,9 @@ git commit -m "Pin maven_install.json"
 **This must be done whenever Maven artifacts in WORKSPACE change.**
 The lock file contains SHA256 checksums for all transitive Maven dependencies.
 
+**Status:** `maven_install.json` must be generated and committed before the
+first F-Droid build. Without it, `rules_jvm_external` will fail.
+
 ## TensorFlow Configure
 
 The `./configure` step probes the host environment and is **non-deterministic**.
@@ -102,10 +106,25 @@ For F-Droid builds, a canonical `ci/tf_configure.bazelrc.fdroid` is shipped in
 the repo. When `FDROID_BUILD=1`, it is used automatically — `./configure` is
 never run.
 
+The `tf_configure.bazelrc.fdroid` contains hardcoded Debian paths
+(`/usr/bin/python3`, `/usr/lib/python3/dist-packages`). This is acceptable
+because F-Droid builds run on Debian and Bazel uses hermetic Python 3.12
+regardless.
+
 For developer builds, `./configure` runs by default. You can skip it with:
 ```bash
 SKIP_CONFIGURE=1 ./ci/build-fdroid.sh
 ```
+
+## Vendor SDKs
+
+Vendor SDK workspace loads (Qualcomm QAIRT, MediaTek NeuroPilot, Google Tensor,
+LiteRT GPU) are **disabled** in the WORKSPACE for F-Droid builds. They download
+proprietary binaries without SHA256 verification and are not needed for the base
+`tensorflow-lite.aar`.
+
+To re-enable for development with vendor delegates, uncomment the corresponding
+lines at the bottom of `WORKSPACE`.
 
 ## F-Droid Metadata (fdroiddata)
 
@@ -153,7 +172,8 @@ Builds:
 - `prebuild:` downloads the repo cache (allowed — prebuild has network)
 - `build:` runs with `FDROID_BUILD=1` (no network, deterministic)
 - All Maven deps are pinned via `maven_install.json`
-- No proprietary dependencies
+- No proprietary dependencies (vendor SDKs disabled in WORKSPACE)
+- `org_tensorflow` uses local source only (no remote URL fallback)
 
 ## Reproducibility Checklist
 
@@ -161,8 +181,17 @@ Builds:
 - [ ] `ci/tf_configure.bazelrc.fdroid` matches target build environment (Debian)
 - [ ] Repository cache generated and published as release asset
 - [ ] `FDROID_BUILD=1` build produces identical AAR SHA256 across runs
-- [ ] No `jcenter.bintray.com` in WORKSPACE (removed)
-- [ ] Vendor SDK loads (Qualcomm, MediaTek, Google Tensor) resolve to no-ops
+- [ ] Vendor SDK loads disabled in WORKSPACE
+- [ ] `org_tensorflow` has no remote URL fallback (`urls = []`)
+
+## CI Workflow Limitations
+
+The GitHub Actions workflow (`.github/workflows/build-fdroid-aar.yml`) uses a
+two-phase approach: Phase 1 fetches dependencies, Phase 2 builds with
+`FDROID_BUILD=1`. However, `bazel clean` (without `--expunge`) between phases
+does **not** fully clear external repos from the output base. This means Phase 2
+does not truly validate that the repo cache alone is sufficient for a cold-start
+build. True cold-start validation must be done on a clean VM.
 
 ## Known Limitations
 
@@ -180,3 +209,6 @@ Builds:
 
 - **Bazel version coupling**: TensorFlow + Bazel compatibility is fragile.
   Upgrading TF likely requires a new Bazel version and re-vendoring.
+
+- **SOURCE_DATE_EPOCH**: Set to `315532800` (1980-01-01T00:00:00Z) to avoid
+  ZIP format issues with timestamps before 1980. F-Droid may override this.

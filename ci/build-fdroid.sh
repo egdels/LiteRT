@@ -119,8 +119,9 @@ SKIP_CONFIGURE="${SKIP_CONFIGURE:-0}"
 # Reproducibility: SOURCE_DATE_EPOCH
 # ---------------------------------------------------------------------------
 # Pin to a fixed epoch for deterministic timestamps in ZIP/AAR files.
+# Use 1980-01-01 (not 0/1970) because ZIP format requires timestamps >= 1980.
 # F-Droid sets this automatically, but we enforce it here as well.
-export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-0}"
+export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-315532800}"
 if [ "$FDROID_BUILD" = "1" ]; then
   info "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH"
 fi
@@ -378,6 +379,7 @@ BAZEL_FLAGS=(
 # Reproducibility flags
 BAZEL_FLAGS+=(
   --stamp=false
+  --workspace_status_command=/bin/true
 )
 
 # Repository cache (required in strict mode, optional in dev mode)
@@ -412,7 +414,8 @@ if [ "$FDROID_BUILD" = "1" ]; then
   _TOUCH_DATE="$(TZ=UTC date -d "@$SOURCE_DATE_EPOCH" '+%Y%m%d%H%M.%S' 2>/dev/null || TZ=UTC date -r "$SOURCE_DATE_EPOCH" '+%Y%m%d%H%M.%S' 2>/dev/null || echo '197001010000.00')"
   find . -exec touch -t "$_TOUCH_DATE" {} +
   # Repack with deterministic ordering and no extra metadata
-  find . -type f | LC_ALL=C sort | TZ=UTC zip -X -q "$OUTPUT_DIR/tensorflow-lite.aar" -@
+  # Use -0 (store) to eliminate zlib version differences across systems
+  find . -type f | LC_ALL=C sort | TZ=UTC zip -X -0 -q "$OUTPUT_DIR/tensorflow-lite.aar" -@
   cd "$REPO_ROOT"
   info "AAR normalized with SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH"
 else

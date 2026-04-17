@@ -8,6 +8,19 @@
 >
 > **No application logic has been modified.** The resulting AAR is functionally identical to the upstream release, minus the XNNPACK delegate (disabled due to API version mismatch with the pinned dependency).
 
+## Usage
+
+The F-Droid-compatible AAR is published to Maven Central:
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("de.schliweb:tensorflow-lite-fdroid:1.4.1-fdroid")
+}
+```
+
+> **Note:** This is NOT an official Google release. It is a patched fork built entirely from source without proprietary dependencies.
+
 ---
 
 # LiteRT Next

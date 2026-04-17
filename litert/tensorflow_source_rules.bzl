@@ -30,6 +30,9 @@ def _tensorflow_source_repo_impl(ctx):
         for f in resolved_local_path.readdir():
             ctx.symlink(f, f.basename)
     else:
+        if not ctx.attr.urls:
+            fail("ERROR: urls is empty and USE_LOCAL_TF is not set to 'true'. " +
+                 "Either set USE_LOCAL_TF=true and TF_LOCAL_SOURCE_PATH, or provide urls.")
         ctx.download_and_extract(
             url = ctx.attr.urls[0],
             sha256 = ctx.attr.sha256,
@@ -44,6 +47,7 @@ tensorflow_source_repo = repository_rule(
         "strip_prefix": attr.string(mandatory = True),
         "urls": attr.string_list(mandatory = True),
     },
+    environ = ["USE_LOCAL_TF", "TF_LOCAL_SOURCE_PATH"],
     doc = """
     A custom repository rule to select between a local TensorFlow source or a remote http_archive
     based on the'USE_LOCAL_TF' environment variable and TF_LOCAL_SOURCE_PATH flag.

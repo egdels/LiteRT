@@ -394,13 +394,24 @@ if [ -n "${BAZEL_REPO_CACHE:-}" ]; then
   fi
 fi
 
-# Allow extra Bazel args (e.g. --batch for network-isolated environments)
+# Allow extra Bazel build args (e.g. --batch for network-isolated environments)
 if [ -n "${BAZEL_EXTRA_ARGS:-}" ]; then
   read -ra _EXTRA <<< "$BAZEL_EXTRA_ARGS"
   BAZEL_FLAGS+=("${_EXTRA[@]}")
 fi
 
-bazel build "${BAZEL_FLAGS[@]}" //tflite/java:tensorflow-lite
+# Startup flags (must come before the 'build' command)
+BAZEL_STARTUP_FLAGS=()
+if [ -n "${BAZEL_STARTUP_ARGS:-}" ]; then
+  read -ra _STARTUP <<< "$BAZEL_STARTUP_ARGS"
+  BAZEL_STARTUP_FLAGS+=("${_STARTUP[@]}")
+fi
+
+if [ ${#BAZEL_STARTUP_FLAGS[@]} -gt 0 ]; then
+  bazel "${BAZEL_STARTUP_FLAGS[@]}" build "${BAZEL_FLAGS[@]}" //tflite/java:tensorflow-lite
+else
+  bazel build "${BAZEL_FLAGS[@]}" //tflite/java:tensorflow-lite
+fi
 
 # ---------------------------------------------------------------------------
 # 6. Normalize AAR for reproducibility

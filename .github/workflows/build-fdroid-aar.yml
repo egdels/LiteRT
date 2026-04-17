@@ -90,6 +90,7 @@ jobs:
         run: |
           export USE_LOCAL_TF=true
           export TF_LOCAL_SOURCE_PATH="$GITHUB_WORKSPACE/third_party/tensorflow"
+          export ANDROID_SDK_HOME="$ANDROID_HOME"
 
           # Use the canonical F-Droid bazelrc
           cp ci/tf_configure.bazelrc.fdroid .tf_configure.bazelrc

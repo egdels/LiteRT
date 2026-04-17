@@ -12,6 +12,12 @@ on:
         default: 'arm64-v8a,armeabi-v7a'
         type: string
 
+# Pinned versions — keep in sync with ci/build-fdroid.sh
+env:
+  PINNED_SDK_API_LEVEL: '35'
+  PINNED_BUILD_TOOLS: '35.0.1'
+  PINNED_NDK_VERSION: '25.2.9519653'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -30,7 +36,6 @@ jobs:
 
       - name: Install Android SDK & NDK
         run: |
-          # Install Android command-line tools
           CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip"
           mkdir -p "$HOME/android-sdk/cmdline-tools"
           curl -fSL -o /tmp/cmdline-tools.zip "$CMDLINE_TOOLS_URL"
@@ -42,10 +47,14 @@ jobs:
           export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager "platforms;android-35" "build-tools;35.0.1" "platform-tools" "ndk;25.2.9519653"
+          sdkmanager \
+            "platforms;android-${PINNED_SDK_API_LEVEL}" \
+            "build-tools;${PINNED_BUILD_TOOLS}" \
+            "platform-tools" \
+            "ndk;${PINNED_NDK_VERSION}"
 
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/${PINNED_NDK_VERSION}" >> "$GITHUB_ENV"
 
       - name: Build AAR
         run: |
@@ -53,6 +62,8 @@ jobs:
           ./ci/build-fdroid.sh
         env:
           FAT_APK_CPUS: ${{ inputs.fat_apk_cpus || 'arm64-v8a,armeabi-v7a' }}
+          ANDROID_SDK_API_LEVEL: ${{ env.PINNED_SDK_API_LEVEL }}
+          ANDROID_BUILD_TOOLS_VERSION: ${{ env.PINNED_BUILD_TOOLS }}
 
       - name: Upload AAR
         uses: actions/upload-artifact@v4

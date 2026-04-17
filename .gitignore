@@ -26,3 +26,5 @@ cmake-build-debug/
 .vscode/
 *.whl
 /.tf_configure.bazelrc
+/output/
+/.local/

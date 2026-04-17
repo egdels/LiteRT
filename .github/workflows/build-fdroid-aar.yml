@@ -145,7 +145,7 @@ jobs:
           # Bazel needs a writable output_user_root. Under sudo/unshare it runs
           # as root but HOME still points to /home/runner. Pre-create the cache dir.
           BAZEL_CACHE_DIR="$RUNNER_TEMP/bazel-output-root"
-          mkdir -p "$BAZEL_CACHE_DIR"
+          sudo mkdir -p "$BAZEL_CACHE_DIR"
           sudo unshare --net -- env \
             HOME="$HOME" \
             USER="$USER" \

@@ -9,7 +9,7 @@ on:
       fat_apk_cpus:
         description: 'Comma-separated list of Android ABIs to build'
         required: false
-        default: 'arm64-v8a'
+        default: 'arm64-v8a,armeabi-v7a'
         type: string
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
           chmod +x ci/build-fdroid.sh
           ./ci/build-fdroid.sh
         env:
-          FAT_APK_CPUS: ${{ inputs.fat_apk_cpus || 'arm64-v8a' }}
+          FAT_APK_CPUS: ${{ inputs.fat_apk_cpus || 'arm64-v8a,armeabi-v7a' }}
 
       - name: Upload AAR
         uses: actions/upload-artifact@v4

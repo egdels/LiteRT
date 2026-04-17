@@ -157,8 +157,7 @@ jobs:
             ANDROID_NDK_HOME="$ANDROID_NDK_HOME" \
             BAZEL_REPO_CACHE="$BAZEL_REPO_CACHE" \
             FAT_APK_CPUS="${{ inputs.fat_apk_cpus || 'arm64-v8a,armeabi-v7a,x86_64,x86' }}" \
-            BAZEL_EXTRA_ARGS="--batch" \
-            BAZEL_STARTUP_ARGS="--output_user_root=$BAZEL_CACHE_DIR" \
+            BAZEL_STARTUP_ARGS="--output_user_root=$BAZEL_CACHE_DIR --batch" \
             ./ci/build-fdroid.sh
 
       # ---------------------------------------------------------------

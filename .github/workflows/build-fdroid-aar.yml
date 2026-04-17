@@ -116,8 +116,11 @@ jobs:
 
           echo "BAZEL_REPO_CACHE=$CACHE_DIR" >> "$GITHUB_ENV"
 
-          # Clean Bazel state so Phase 2 starts fresh
-          bazel clean --expunge
+          # Clean build outputs but keep external repos and server state.
+          # NOTE: Do NOT use --expunge here. It destroys the output base,
+          # forcing Bazel to re-evaluate the WORKSPACE from scratch, which
+          # triggers a cycle error (local_xla <-> org_tensorflow).
+          bazel clean
           info "Repository cache populated at $CACHE_DIR"
           du -sh "$CACHE_DIR"
 

@@ -180,10 +180,3 @@ jobs:
           name: tensorflow-lite-aar
           path: output/*.aar
 
-      - name: Upload repository cache (for F-Droid)
-        if: ${{ inputs.fdroid_strict != false }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: bazel-repo-cache
-          path: ${{ env.BAZEL_REPO_CACHE }}
-          retention-days: 30

@@ -1,0 +1,60 @@
+name: Publish to Maven Central
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g. 1.4.1-fdroid)'
+        required: true
+        default: '1.4.1-fdroid'
+        type: string
+  workflow_run:
+    workflows: ["Build LiteRT AAR (F-Droid compatible)"]
+    types: [completed]
+    branches: [litert-1.4.1-patch]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # Only run if triggered manually OR if the build workflow succeeded on a tag push
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       startsWith(github.event.workflow_run.head_branch, 'v'))
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Download AAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tensorflow-lite-aar
+          path: output/
+          # For workflow_run triggers, use the triggering workflow's run ID
+          run-id: ${{ github.event.workflow_run.id || '' }}
+
+      - name: Verify AAR exists
+        run: |
+          ls -la output/tensorflow-lite.aar
+          sha256sum output/tensorflow-lite.aar
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Publish to Maven Central
+        working-directory: publish
+        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
+        env:
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}

@@ -142,10 +142,17 @@ jobs:
           # Enforce no network access — simulates F-Droid's offline sandbox.
           # unshare --net creates a network namespace with only loopback,
           # so any attempt to reach the internet will fail immediately.
-          # Bazel needs a writable output_user_root. Under sudo/unshare it runs
-          # as root but HOME still points to /home/runner. Pre-create the cache dir.
-          BAZEL_CACHE_DIR="$RUNNER_TEMP/bazel-output-root"
-          sudo mkdir -p "$BAZEL_CACHE_DIR"
+          #
+          # IMPORTANT: We reuse Phase 1's Bazel output base (not a fresh one).
+          # Some repository rules (e.g. go_sdk from grpc_extra_deps) use
+          # ctx.download() which is NOT cached by --repository_cache.
+          # These repos were resolved in Phase 1 and live in the output base.
+          # Using a fresh --output_user_root would lose them and fail offline.
+          #
+          # We need --batch because unshare --net blocks the Bazel client-server
+          # socket. We grant root access to the existing output base.
+          BAZEL_OUTPUT_BASE="$(bazel info output_base 2>/dev/null || echo "$HOME/.cache/bazel")"
+          sudo chmod -R a+rwx "$HOME/.cache/bazel" 2>/dev/null || true
           sudo unshare --net -- env \
             HOME="$HOME" \
             USER="$USER" \
@@ -159,7 +166,7 @@ jobs:
             ANDROID_NDK_HOME="$ANDROID_NDK_HOME" \
             BAZEL_REPO_CACHE="$BAZEL_REPO_CACHE" \
             FAT_APK_CPUS="${{ inputs.fat_apk_cpus || 'arm64-v8a,armeabi-v7a,x86_64,x86' }}" \
-            BAZEL_STARTUP_ARGS="--output_user_root=$BAZEL_CACHE_DIR --batch" \
+            BAZEL_STARTUP_ARGS="--batch" \
             ./ci/build-fdroid.sh
 
       # ---------------------------------------------------------------

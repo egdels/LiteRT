@@ -133,6 +133,7 @@ jobs:
           chmod +x ci/build-fdroid.sh
           FDROID_BUILD=1 \
             ANDROID_HOME="$ANDROID_HOME" \
+            ANDROID_SDK_HOME="$ANDROID_HOME" \
             ANDROID_NDK_HOME="$ANDROID_NDK_HOME" \
             BAZEL_REPO_CACHE="$BAZEL_REPO_CACHE" \
             FAT_APK_CPUS="${{ inputs.fat_apk_cpus || 'arm64-v8a' }}" \

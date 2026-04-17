@@ -51,9 +51,9 @@ jobs:
       # ---------------------------------------------------------------
       - name: Install Bazel ${{ env.BAZEL_VERSION }}
         run: |
-          BAZEL_URL="https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-linux-x86_64"
-          curl -fSL -o /usr/local/bin/bazel "$BAZEL_URL"
-          chmod +x /usr/local/bin/bazel
+          BAZEL_URL="https://github.com/bazelbuild/bazel/releases/download/${{ env.BAZEL_VERSION }}/bazel-${{ env.BAZEL_VERSION }}-linux-x86_64"
+          sudo curl -fSL -o /usr/local/bin/bazel "$BAZEL_URL"
+          sudo chmod +x /usr/local/bin/bazel
           bazel --version
 
       # ---------------------------------------------------------------

@@ -79,24 +79,20 @@ FDROID_BUILD=1 \
 Upload `bazel-repo-cache-v1.4.1.tar.gz` as a GitHub Release asset alongside
 the source tag. Document its SHA256 checksum.
 
-## Pinning Maven Dependencies
+## Removed WORKSPACE Dependencies
 
-The WORKSPACE uses `maven_install` with a lock file for reproducibility:
+The following WORKSPACE blocks are **commented out** because they are not needed
+by `//tflite/java:tensorflow-lite` and would increase the F-Droid review surface:
 
-```bash
-# Generate/update the lock file (requires network)
-bazel run @litert_maven//:pin
+| Block | Reason for removal |
+|-------|--------------------|
+| `litert_maven` | Only used by `litert/kotlin/`. Required a non-existent `maven_install.json`. |
+| `rules_kotlin` | Only used by `litert/kotlin/`. |
+| `tqdm` | Only used by `litert/` targets. |
+| `stblib` | Only used by `litert/` targets. |
 
-# Commit the result
-git add maven_install.json
-git commit -m "Pin maven_install.json"
-```
-
-**This must be done whenever Maven artifacts in WORKSPACE change.**
-The lock file contains SHA256 checksums for all transitive Maven dependencies.
-
-**Status:** `maven_install.json` must be generated and committed before the
-first F-Droid build. Without it, `rules_jvm_external` will fail.
+To re-enable for full LiteRT development, uncomment the corresponding blocks
+in `WORKSPACE`.
 
 ## TensorFlow Configure
 
@@ -171,13 +167,12 @@ Builds:
 - `sudo:` installs Bazel (no Bazelisk download during build)
 - `prebuild:` downloads the repo cache (allowed — prebuild has network)
 - `build:` runs with `FDROID_BUILD=1` (no network, deterministic)
-- All Maven deps are pinned via `maven_install.json`
 - No proprietary dependencies (vendor SDKs disabled in WORKSPACE)
+- Unused WORKSPACE deps removed (`litert_maven`, `rules_kotlin`, `tqdm`, `stblib`)
 - `org_tensorflow` uses local source only (no remote URL fallback)
 
 ## Reproducibility Checklist
 
-- [ ] `maven_install.json` committed and up-to-date
 - [ ] `ci/tf_configure.bazelrc.fdroid` matches target build environment (Debian)
 - [ ] Repository cache generated and published as release asset
 - [ ] `FDROID_BUILD=1` build produces identical AAR SHA256 across runs

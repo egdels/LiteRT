@@ -109,47 +109,39 @@ new_local_repository(
     path = "third_party/cuda_stub",
 )
 
-load("//third_party/tqdm:workspace.bzl", tqdm = "repo")
+# ---------------------------------------------------------------------------
+# REMOVED for F-Droid: the following are NOT needed by //tflite/java:tensorflow-lite
+# and are disabled to reduce the external dependency surface.
+# ---------------------------------------------------------------------------
 
-tqdm()
+# tqdm — only used by litert/ targets, not tflite/
+# load("//third_party/tqdm:workspace.bzl", tqdm = "repo")
+# tqdm()
 
-load("@rules_jvm_external//:defs.bzl", "maven_install")
+# litert_maven — only used by litert/kotlin/, not tflite/
+# Also requires maven_install.json which does not exist.
+# load("@rules_jvm_external//:defs.bzl", "maven_install")
+# maven_install(
+#     name = "litert_maven",
+#     artifacts = [...],
+#     maven_install_json = "//:maven_install.json",
+#     repositories = [...],
+# )
 
-maven_install(
-    name = "litert_maven",
-    artifacts = [
-        "androidx.lifecycle:lifecycle-common:2.8.7",
-        "com.google.guava:guava:33.4.6-android",
-        "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1",
-        "org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.10.1",
-    ],
-    maven_install_json = "//:maven_install.json",
-    repositories = [
-        "https://maven.google.com",
-        "https://dl.google.com/dl/android/maven2",
-        "https://repo1.maven.org/maven2",
-    ],
-    version_conflict_policy = "pinned",
-)
+# Kotlin rules — only used by litert/kotlin/, not tflite/
+# http_archive(
+#     name = "rules_kotlin",
+#     sha256 = "e1448a56b2462407b2688dea86df5c375b36a0991bd478c2ddd94c97168125e2",
+#     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v2.1.3/rules_kotlin-v2.1.3.tar.gz",
+# )
+# load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+# kotlin_repositories()
+# load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+# kt_register_toolchains()
 
-# Kotlin rules
-http_archive(
-    name = "rules_kotlin",
-    sha256 = "e1448a56b2462407b2688dea86df5c375b36a0991bd478c2ddd94c97168125e2",
-    url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v2.1.3/rules_kotlin-v2.1.3.tar.gz",
-)
-
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
-
-kotlin_repositories()  # if you want the default. Otherwise see custom kotlinc distribution below
-
-load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
-
-kt_register_toolchains()  # to use the default toolchain, otherwise see toolchains below
-
-load("//third_party/stblib:workspace.bzl", stblib = "repo")
-
-stblib()
+# stblib — only used by litert/ targets, not tflite/
+# load("//third_party/stblib:workspace.bzl", stblib = "repo")
+# stblib()
 
 # VENDOR SDKS ######################################################################################
 # NOTE: Vendor SDK loads (Qualcomm QAIRT, MediaTek NeuroPilot, Google Tensor,

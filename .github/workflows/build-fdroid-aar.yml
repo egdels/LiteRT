@@ -151,6 +151,13 @@ jobs:
           # Write startup option to .bazelrc so ALL bazel invocations use it
           echo "startup --output_user_root=$BAZEL_OUTPUT_ROOT" >> .bazelrc
 
+          # Bazel's C++ client probes its default output root via mkdir()
+          # BEFORE reading .bazelrc or --output_user_root. Pre-create the
+          # default directory so the probe succeeds, then .bazelrc redirects
+          # to /tmp/bazel-output-root for the actual build.
+          mkdir -p "$HOME/.cache/bazel/_bazel_runner"
+          mkdir -p "$HOME/.cache/bazel/_bazel_root"
+
           # Enforce no network access — simulates F-Droid's offline sandbox.
           # unshare --user --net creates a network namespace with only loopback.
           # Using --user (unprivileged user namespace) instead of sudo avoids

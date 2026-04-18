@@ -119,16 +119,13 @@ jobs:
 
           echo "BAZEL_REPO_CACHE=$CACHE_DIR" >> "$GITHUB_ENV"
 
-          # Clean build outputs but keep external repos and server state.
-          # NOTE: Do NOT use --expunge here. It destroys the output base,
-          # forcing Bazel to re-evaluate the WORKSPACE from scratch, which
-          # triggers a cycle error (local_xla <-> org_tensorflow).
-          # LIMITATION: Phase 2 will still have external repos from Phase 1
-          # in the output base. This means the workflow does NOT fully validate
-          # that the repo cache alone is sufficient for a cold-start build.
+          # Shut down the Bazel server but do NOT clean the output base.
+          # Some repository rules (e.g. go_sdk from grpc_extra_deps) use
+          # ctx.download() which is NOT cached by --repository_cache.
+          # These resolved repos live in the output base and must survive
+          # into Phase 2 (which copies the output base to /tmp).
           # True cold-start validation must be done on a clean VM.
           bazel shutdown
-          bazel clean
           info "Repository cache populated at $CACHE_DIR"
           du -sh "$CACHE_DIR"
 

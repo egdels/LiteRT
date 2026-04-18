@@ -13,6 +13,11 @@ on:
         required: false
         default: false
         type: boolean
+      build_run_id:
+        description: 'Run ID of the build workflow (leave empty to use latest successful)'
+        required: false
+        default: ''
+        type: string
   workflow_run:
     workflows: ["Build LiteRT AAR (F-Droid compatible)"]
     types: [completed]
@@ -40,13 +45,38 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # Determine which build workflow run to download the artifact from.
+      # Priority: 1) explicit input  2) workflow_run trigger  3) latest successful run
+      - name: Resolve build run ID
+        id: resolve-run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "${{ inputs.build_run_id }}" ]; then
+            echo "run_id=${{ inputs.build_run_id }}" >> "$GITHUB_OUTPUT"
+            echo "==> Using explicitly provided run ID: ${{ inputs.build_run_id }}"
+          elif [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "run_id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
+            echo "==> Using workflow_run trigger ID: ${{ github.event.workflow_run.id }}"
+          else
+            # Find the latest successful run of the build workflow
+            RUN_ID=$(gh api \
+              "repos/${{ github.repository }}/actions/workflows/build-fdroid-aar.yml/runs?status=success&per_page=1" \
+              --jq '.workflow_runs[0].id')
+            if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+              echo "::error::No successful build workflow run found."
+              exit 1
+            fi
+            echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+            echo "==> Using latest successful build run ID: $RUN_ID"
+          fi
+
       - name: Download AAR artifact
         uses: actions/download-artifact@v4
         with:
           name: tensorflow-lite-aar
           path: output/
-          # For workflow_run triggers, use the triggering workflow's run ID
-          run-id: ${{ github.event.workflow_run.id || '' }}
+          run-id: ${{ steps.resolve-run.outputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify AAR exists

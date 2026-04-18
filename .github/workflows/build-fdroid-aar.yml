@@ -101,10 +101,16 @@ jobs:
           CACHE_DIR="$RUNNER_TEMP/bazel-repo-cache"
           mkdir -p "$CACHE_DIR"
 
+          # Use the same --output_user_root that Phase 2 will use.
+          # This ensures Phase 2 can reuse the exact output base (including
+          # repos resolved via ctx.download() that aren't in --repository_cache).
+          BAZEL_OUTPUT_ROOT="/tmp/bazel-output-root"
+          mkdir -p "$BAZEL_OUTPUT_ROOT"
+
           info() { echo "==> $*"; }
           info "Fetching all dependencies into repository cache..."
 
-          bazel fetch //tflite/java:tensorflow-lite \
+          bazel --output_user_root="$BAZEL_OUTPUT_ROOT" fetch //tflite/java:tensorflow-lite \
             -c opt \
             --cxxopt=--std=c++17 \
             --config=android \
@@ -123,9 +129,9 @@ jobs:
           # Some repository rules (e.g. go_sdk from grpc_extra_deps) use
           # ctx.download() which is NOT cached by --repository_cache.
           # These resolved repos live in the output base and must survive
-          # into Phase 2 (which copies the output base to /tmp).
+          # into Phase 2 which reuses the same --output_user_root.
           # True cold-start validation must be done on a clean VM.
-          bazel shutdown
+          bazel --output_user_root="$BAZEL_OUTPUT_ROOT" shutdown
           info "Repository cache populated at $CACHE_DIR"
           du -sh "$CACHE_DIR"
 
@@ -143,17 +149,10 @@ jobs:
           # We need --batch because unshare --net blocks the Bazel client-server
           # socket.
           #
-          # Permission workaround: sudo unshare runs as root, but root cannot
-          # write to /home/runner/.cache or $RUNNER_TEMP (permission denied).
-          # We use /tmp as --output_user_root and copy Phase 1's output base
-          # into it so that external repos resolved via ctx.download()
-          # (not cached by --repository_cache) are available.
+          # Phase 1 used the same /tmp/bazel-output-root as --output_user_root,
+          # so all external repos (including ctx.download() ones like go_sdk)
+          # are already there. Just chmod for root access.
           BAZEL_OUTPUT_ROOT="/tmp/bazel-output-root"
-          sudo mkdir -p "$BAZEL_OUTPUT_ROOT"
-          sudo chmod 777 "$BAZEL_OUTPUT_ROOT"
-          if [ -d "$HOME/.cache/bazel" ]; then
-            cp -a "$HOME/.cache/bazel"/* "$BAZEL_OUTPUT_ROOT/" 2>/dev/null || true
-          fi
           sudo chmod -R 777 "$BAZEL_OUTPUT_ROOT"
           sudo unshare --net -- env \
             HOME="$HOME" \

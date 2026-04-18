@@ -154,6 +154,11 @@ jobs:
           # are already there. Just chmod for root access.
           BAZEL_OUTPUT_ROOT="/tmp/bazel-output-root"
           sudo chmod -R 777 "$BAZEL_OUTPUT_ROOT"
+
+          # Write startup option to .bazelrc so ALL bazel invocations use it,
+          # even if BAZEL_STARTUP_ARGS is not parsed correctly by the shell.
+          echo "startup --output_user_root=$BAZEL_OUTPUT_ROOT" >> .bazelrc
+
           sudo unshare --net -- env \
             HOME="$HOME" \
             USER="$USER" \

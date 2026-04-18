@@ -152,12 +152,12 @@ jobs:
           # into it so that external repos resolved via ctx.download()
           # (not cached by --repository_cache) are available.
           BAZEL_OUTPUT_ROOT="/tmp/bazel-output-root"
+          sudo mkdir -p "$BAZEL_OUTPUT_ROOT"
+          sudo chmod 777 "$BAZEL_OUTPUT_ROOT"
           if [ -d "$HOME/.cache/bazel" ]; then
-            cp -a "$HOME/.cache/bazel" "$BAZEL_OUTPUT_ROOT"
-          else
-            mkdir -p "$BAZEL_OUTPUT_ROOT"
+            cp -a "$HOME/.cache/bazel"/* "$BAZEL_OUTPUT_ROOT/" 2>/dev/null || true
           fi
-          chmod -R 777 "$BAZEL_OUTPUT_ROOT"
+          sudo chmod -R 777 "$BAZEL_OUTPUT_ROOT"
           sudo unshare --net -- env \
             HOME="$HOME" \
             USER="$USER" \

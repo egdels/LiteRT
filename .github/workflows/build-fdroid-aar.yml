@@ -143,20 +143,21 @@ jobs:
           # unshare --net creates a network namespace with only loopback,
           # so any attempt to reach the internet will fail immediately.
           #
-          # IMPORTANT: We reuse Phase 1's Bazel output base (not a fresh one).
-          # Some repository rules (e.g. go_sdk from grpc_extra_deps) use
-          # ctx.download() which is NOT cached by --repository_cache.
-          # These repos were resolved in Phase 1 and live in the output base.
-          # Using a fresh --output_user_root would lose them and fail offline.
-          #
           # We need --batch because unshare --net blocks the Bazel client-server
-          # socket. We grant root access to the existing output base.
-          # Ensure root (via sudo unshare) can access the Bazel output base from Phase 1.
-          # Phase 1 created ~/.cache/bazel as runner; Phase 2 runs as root via sudo.
-          # We use --output_user_root to explicitly point Bazel at the existing cache
-          # directory, and chmod it so root can read/write everything.
-          mkdir -p "$HOME/.cache/bazel"
-          sudo chmod -R 777 "$HOME/.cache/bazel"
+          # socket.
+          #
+          # Permission workaround: sudo unshare runs as root, but root cannot
+          # write to /home/runner/.cache (owned by runner, mode 755).
+          # We use a temp directory as --output_user_root and copy Phase 1's
+          # output base into it so that external repos resolved via
+          # ctx.download() (not cached by --repository_cache) are available.
+          BAZEL_OUTPUT_ROOT="$RUNNER_TEMP/bazel-output-root"
+          if [ -d "$HOME/.cache/bazel" ]; then
+            cp -a "$HOME/.cache/bazel" "$BAZEL_OUTPUT_ROOT"
+          else
+            mkdir -p "$BAZEL_OUTPUT_ROOT"
+          fi
+          sudo chmod -R 777 "$BAZEL_OUTPUT_ROOT"
           sudo unshare --net -- env \
             HOME="$HOME" \
             USER="$USER" \
@@ -170,7 +171,7 @@ jobs:
             ANDROID_NDK_HOME="$ANDROID_NDK_HOME" \
             BAZEL_REPO_CACHE="$BAZEL_REPO_CACHE" \
             FAT_APK_CPUS="${{ inputs.fat_apk_cpus || 'arm64-v8a,armeabi-v7a,x86_64,x86' }}" \
-            BAZEL_STARTUP_ARGS="--batch --output_user_root=$HOME/.cache/bazel" \
+            BAZEL_STARTUP_ARGS="--batch --output_user_root=$BAZEL_OUTPUT_ROOT" \
             ./ci/build-fdroid.sh
 
       # ---------------------------------------------------------------

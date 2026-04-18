@@ -273,7 +273,14 @@ export USE_BAZEL_VERSION="$(cat "$REPO_ROOT/.bazelversion" 2>/dev/null || echo '
 info "Bazel version pinned to: $USE_BAZEL_VERSION"
 
 if command -v bazel >/dev/null 2>&1; then
-  info "Bazel found: $(bazel --version 2>/dev/null | head -1)"
+  # Use startup args (e.g. --output_user_root) even for --version,
+  # because Bazel creates its output base on ANY invocation.
+  if [ -n "${BAZEL_STARTUP_ARGS:-}" ]; then
+    read -ra _STARTUP_CHECK <<< "$BAZEL_STARTUP_ARGS"
+    info "Bazel found: $(bazel "${_STARTUP_CHECK[@]}" --version 2>/dev/null | head -1)"
+  else
+    info "Bazel found: $(bazel --version 2>/dev/null | head -1)"
+  fi
 elif [ "$FDROID_BUILD" = "1" ]; then
   die "FDROID_BUILD=1 requires bazel to be pre-installed."
 else

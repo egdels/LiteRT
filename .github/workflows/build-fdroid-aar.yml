@@ -148,15 +148,17 @@ jobs:
           # are already there.
           BAZEL_OUTPUT_ROOT="/tmp/bazel-output-root"
 
-          # Write startup option to .bazelrc so ALL bazel invocations use it
-          echo "startup --output_user_root=$BAZEL_OUTPUT_ROOT" >> .bazelrc
-
-          # Bazel's C++ client probes its default output root via mkdir()
-          # BEFORE reading .bazelrc or --output_user_root. Pre-create the
-          # default directory so the probe succeeds, then .bazelrc redirects
-          # to /tmp/bazel-output-root for the actual build.
-          mkdir -p "$HOME/.cache/bazel/_bazel_runner"
-          mkdir -p "$HOME/.cache/bazel/_bazel_root"
+          # Create a bazel wrapper that injects --output_user_root BEFORE
+          # the real bazel binary runs. Bazel's C++ client calls mkdir() on
+          # its default output root (~/.cache/bazel/_bazel_<user>) BEFORE
+          # reading .bazelrc or any flags. The only way to prevent this is
+          # to pass --output_user_root on the command line, which the wrapper
+          # ensures for every invocation (including --version checks).
+          WRAPPER_DIR="$(mktemp -d)"
+          REAL_BAZEL="$(command -v bazel)"
+          printf '#!/bin/sh\nexec "%s" --output_user_root="%s" "$@"\n' \
+            "$REAL_BAZEL" "$BAZEL_OUTPUT_ROOT" > "$WRAPPER_DIR/bazel"
+          chmod +x "$WRAPPER_DIR/bazel"
 
           # Enforce no network access — simulates F-Droid's offline sandbox.
           # unshare --user --net creates a network namespace with only loopback.
@@ -167,7 +169,7 @@ jobs:
           unshare --user --net --map-root-user -- env \
             HOME="$HOME" \
             USER="$USER" \
-            PATH="$PATH" \
+            PATH="$WRAPPER_DIR:$PATH" \
             JAVA_HOME="$JAVA_HOME" \
             FDROID_BUILD=1 \
             USE_LOCAL_TF=true \
@@ -177,7 +179,7 @@ jobs:
             ANDROID_NDK_HOME="$ANDROID_NDK_HOME" \
             BAZEL_REPO_CACHE="$BAZEL_REPO_CACHE" \
             FAT_APK_CPUS="${{ inputs.fat_apk_cpus || 'arm64-v8a,armeabi-v7a,x86_64,x86' }}" \
-            BAZEL_STARTUP_ARGS="--batch --output_user_root=$BAZEL_OUTPUT_ROOT" \
+            BAZEL_STARTUP_ARGS="--batch" \
             ./ci/build-fdroid.sh
 
       # ---------------------------------------------------------------

@@ -142,24 +142,22 @@ jobs:
         if: ${{ inputs.fdroid_strict != false }}
         run: |
           chmod +x ci/build-fdroid.sh
-          # Enforce no network access — simulates F-Droid's offline sandbox.
-          # unshare --net creates a network namespace with only loopback,
-          # so any attempt to reach the internet will fail immediately.
-          #
-          # We need --batch because unshare --net blocks the Bazel client-server
-          # socket.
-          #
-          # Phase 1 used the same /tmp/bazel-output-root as --output_user_root,
-          # so all external repos (including ctx.download() ones like go_sdk)
-          # are already there. Just chmod for root access.
-          BAZEL_OUTPUT_ROOT="/tmp/bazel-output-root"
-          sudo chmod -R 777 "$BAZEL_OUTPUT_ROOT"
 
-          # Write startup option to .bazelrc so ALL bazel invocations use it,
-          # even if BAZEL_STARTUP_ARGS is not parsed correctly by the shell.
+          # Phase 1 used /tmp/bazel-output-root as --output_user_root,
+          # so all external repos (including ctx.download() ones like go_sdk)
+          # are already there.
+          BAZEL_OUTPUT_ROOT="/tmp/bazel-output-root"
+
+          # Write startup option to .bazelrc so ALL bazel invocations use it
           echo "startup --output_user_root=$BAZEL_OUTPUT_ROOT" >> .bazelrc
 
-          sudo unshare --net -- env \
+          # Enforce no network access — simulates F-Droid's offline sandbox.
+          # unshare --user --net creates a network namespace with only loopback.
+          # Using --user (unprivileged user namespace) instead of sudo avoids
+          # all permission issues with Bazel's output root directories.
+          # --map-root-user maps the current UID/GID to root inside the
+          # namespace, but filesystem access stays as the runner user.
+          unshare --user --net --map-root-user -- env \
             HOME="$HOME" \
             USER="$USER" \
             PATH="$PATH" \

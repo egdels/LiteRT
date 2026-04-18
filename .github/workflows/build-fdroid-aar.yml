@@ -147,17 +147,17 @@ jobs:
           # socket.
           #
           # Permission workaround: sudo unshare runs as root, but root cannot
-          # write to /home/runner/.cache (owned by runner, mode 755).
-          # We use a temp directory as --output_user_root and copy Phase 1's
-          # output base into it so that external repos resolved via
-          # ctx.download() (not cached by --repository_cache) are available.
-          BAZEL_OUTPUT_ROOT="$RUNNER_TEMP/bazel-output-root"
+          # write to /home/runner/.cache or $RUNNER_TEMP (permission denied).
+          # We use /tmp as --output_user_root and copy Phase 1's output base
+          # into it so that external repos resolved via ctx.download()
+          # (not cached by --repository_cache) are available.
+          BAZEL_OUTPUT_ROOT="/tmp/bazel-output-root"
           if [ -d "$HOME/.cache/bazel" ]; then
             cp -a "$HOME/.cache/bazel" "$BAZEL_OUTPUT_ROOT"
           else
             mkdir -p "$BAZEL_OUTPUT_ROOT"
           fi
-          sudo chmod -R 777 "$BAZEL_OUTPUT_ROOT"
+          chmod -R 777 "$BAZEL_OUTPUT_ROOT"
           sudo unshare --net -- env \
             HOME="$HOME" \
             USER="$USER" \

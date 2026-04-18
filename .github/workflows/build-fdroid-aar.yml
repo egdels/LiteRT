@@ -153,7 +153,9 @@ jobs:
           # socket. We grant root access to the existing output base.
           # Ensure root (via sudo unshare) can access the Bazel cache from Phase 1.
           # Phase 1 created ~/.cache/bazel as runner; Phase 2 runs as root via sudo.
+          # mkdir -p ensures the directory exists even if Phase 1 used a different path.
           # chmod the entire .cache tree so Bazel (as root) can read/write everything.
+          mkdir -p "$HOME/.cache/bazel"
           sudo chmod -R 777 "$HOME/.cache/bazel"
           sudo unshare --net -- env \
             HOME="$HOME" \

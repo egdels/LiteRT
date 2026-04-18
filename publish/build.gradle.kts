@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "de.schliweb"
-version = "1.4.1-fdroid"
+version = System.getenv("AAR_VERSION") ?: "1.4.1-fdroid"
 
 val aarFile = file("../output/tensorflow-lite.aar")
 val javaSourceDir = file("../tflite/java/src/main/java")

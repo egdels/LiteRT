@@ -8,19 +8,26 @@ on:
         required: true
         default: '1.4.1-fdroid'
         type: string
+      dry_run:
+        description: 'Dry run — publish to local Maven repo only, skip Sonatype'
+        required: false
+        default: false
+        type: boolean
   workflow_run:
     workflows: ["Build LiteRT AAR (F-Droid compatible)"]
     types: [completed]
-    branches: [litert-1.4.1-patch]
+
+permissions:
+  actions: read
+  contents: read
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    # Only run if triggered manually OR if the build workflow succeeded on a tag push
+    # Only run if triggered manually OR if the build workflow succeeded
     if: >
       github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       startsWith(github.event.workflow_run.head_branch, 'v'))
+      github.event.workflow_run.conclusion == 'success'
     timeout-minutes: 15
 
     steps:
@@ -40,6 +47,7 @@ jobs:
           path: output/
           # For workflow_run triggers, use the triggering workflow's run ID
           run-id: ${{ github.event.workflow_run.id || '' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify AAR exists
         run: |
@@ -50,11 +58,23 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Publish to Maven Central
+        if: ${{ !inputs.dry_run }}
         working-directory: publish
         run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
         env:
+          AAR_VERSION: ${{ inputs.version || '1.4.1-fdroid' }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Dry run — publish to local Maven repo
+        if: ${{ inputs.dry_run }}
+        working-directory: publish
+        run: |
+          ./gradlew publishToMavenLocal
+          echo "=== Published artifacts ==="
+          find ~/.m2/repository/de/schliweb -type f | sort
+        env:
+          AAR_VERSION: ${{ inputs.version || '1.4.1-fdroid' }}

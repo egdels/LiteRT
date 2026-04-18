@@ -151,10 +151,10 @@ jobs:
           #
           # We need --batch because unshare --net blocks the Bazel client-server
           # socket. We grant root access to the existing output base.
-          # Ensure root (via sudo unshare) can access the Bazel cache from Phase 1.
+          # Ensure root (via sudo unshare) can access the Bazel output base from Phase 1.
           # Phase 1 created ~/.cache/bazel as runner; Phase 2 runs as root via sudo.
-          # mkdir -p ensures the directory exists even if Phase 1 used a different path.
-          # chmod the entire .cache tree so Bazel (as root) can read/write everything.
+          # We use --output_user_root to explicitly point Bazel at the existing cache
+          # directory, and chmod it so root can read/write everything.
           mkdir -p "$HOME/.cache/bazel"
           sudo chmod -R 777 "$HOME/.cache/bazel"
           sudo unshare --net -- env \
@@ -170,7 +170,7 @@ jobs:
             ANDROID_NDK_HOME="$ANDROID_NDK_HOME" \
             BAZEL_REPO_CACHE="$BAZEL_REPO_CACHE" \
             FAT_APK_CPUS="${{ inputs.fat_apk_cpus || 'arm64-v8a,armeabi-v7a,x86_64,x86' }}" \
-            BAZEL_STARTUP_ARGS="--batch" \
+            BAZEL_STARTUP_ARGS="--batch --output_user_root=$HOME/.cache/bazel" \
             ./ci/build-fdroid.sh
 
       # ---------------------------------------------------------------

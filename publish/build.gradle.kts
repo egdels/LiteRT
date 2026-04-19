@@ -106,8 +106,9 @@ signing {
 
 tasks.withType<Sign>().configureEach {
     onlyIf {
-        gradle.taskGraph.hasTask("publish") ||
-        gradle.taskGraph.hasTask("publishToSonatype") ||
-        gradle.taskGraph.hasTask("publishToMavenLocal")
+        gradle.taskGraph.hasTask(":publish") ||
+        gradle.taskGraph.hasTask(":publishToSonatype") ||
+        gradle.taskGraph.hasTask(":publishToMavenLocal") ||
+        gradle.taskGraph.hasTask(":publishReleasePublicationToMavenLocal")
     }
 }

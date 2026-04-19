@@ -11,7 +11,7 @@ on:
       dry_run:
         description: 'Dry run — publish to local Maven repo only, skip Sonatype'
         required: false
-        default: false
+        default: true
         type: boolean
       build_run_id:
         description: 'Run ID of the build workflow (leave empty to use latest successful)'
@@ -21,11 +21,8 @@ on:
       staging_only:
         description: 'Upload to Sonatype staging only — do NOT release (allows manual review in portal)'
         required: false
-        default: false
+        default: true
         type: boolean
-  workflow_run:
-    workflows: ["Build LiteRT AAR (F-Droid compatible)"]
-    types: [completed]
 
 permissions:
   actions: read
@@ -34,10 +31,6 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    # Only run if triggered manually OR if the build workflow succeeded
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
     timeout-minutes: 15
 
     steps:
@@ -51,7 +44,7 @@ jobs:
           java-version: '17'
 
       # Determine which build workflow run to download the artifact from.
-      # Priority: 1) explicit input  2) workflow_run trigger  3) latest successful run
+      # Priority: 1) explicit input  2) latest successful run
       - name: Resolve build run ID
         id: resolve-run
         env:
@@ -60,9 +53,6 @@ jobs:
           if [ -n "${{ inputs.build_run_id }}" ]; then
             echo "run_id=${{ inputs.build_run_id }}" >> "$GITHUB_OUTPUT"
             echo "==> Using explicitly provided run ID: ${{ inputs.build_run_id }}"
-          elif [ "${{ github.event_name }}" = "workflow_run" ]; then
-            echo "run_id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
-            echo "==> Using workflow_run trigger ID: ${{ github.event.workflow_run.id }}"
           else
             # Find the latest successful run of the build workflow
             RUN_ID=$(gh api \

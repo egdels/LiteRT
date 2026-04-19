@@ -108,3 +108,11 @@ jobs:
           find ~/.m2/repository/de/schliweb -type f | sort
         env:
           AAR_VERSION: ${{ inputs.version || '1.4.1-fdroid' }}
+
+      - name: Upload Maven artifacts for inspection
+        if: ${{ inputs.dry_run }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-local-artifacts
+          path: ~/.m2/repository/de/schliweb/
+          retention-days: 7

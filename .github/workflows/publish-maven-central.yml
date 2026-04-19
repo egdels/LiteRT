@@ -108,9 +108,9 @@ jobs:
         if: ${{ inputs.staging_only }}
         working-directory: publish
         run: |
-          ./gradlew publishToSonatype
-          echo "==> Artifacts uploaded to Sonatype staging."
-          echo "==> Review at https://central.sonatype.com and release or drop manually."
+          ./gradlew publishToSonatype closeSonatypeStagingRepository
+          echo "==> Artifacts uploaded and staging repository closed."
+          echo "==> Review at https://central.sonatype.com → Deployments, then Publish or Drop."
         env:
           AAR_VERSION: ${{ inputs.version || '1.4.1-fdroid' }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}

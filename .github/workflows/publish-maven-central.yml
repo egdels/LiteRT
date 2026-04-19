@@ -18,6 +18,11 @@ on:
         required: false
         default: ''
         type: string
+      staging_only:
+        description: 'Upload to Sonatype staging only — do NOT release (allows manual review in portal)'
+        required: false
+        default: false
+        type: boolean
   workflow_run:
     workflows: ["Build LiteRT AAR (F-Droid compatible)"]
     types: [completed]
@@ -88,9 +93,24 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Publish to Maven Central
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && !inputs.staging_only }}
         working-directory: publish
         run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
+        env:
+          AAR_VERSION: ${{ inputs.version || '1.4.1-fdroid' }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Publish to Sonatype staging (review in portal before release)
+        if: ${{ inputs.staging_only }}
+        working-directory: publish
+        run: |
+          ./gradlew publishToSonatype
+          echo "==> Artifacts uploaded to Sonatype staging."
+          echo "==> Review at https://central.sonatype.com and release or drop manually."
         env:
           AAR_VERSION: ${{ inputs.version || '1.4.1-fdroid' }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}

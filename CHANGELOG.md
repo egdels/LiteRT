@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.4.1-patch2] - 2026-04-23
+
+### Changed
+
+- **XNNPACK re-enabled**: Removed `--define=tflite_with_xnnpack=false`, `--define=tflite_kernel_use_xnnpack=false`, and `--copt=-DTF_LITE_DISABLE_X86_NEON` from `ci/build-fdroid.sh` and `.github/workflows/build-fdroid-aar.yml`. XNNPACK is now built with the default (enabled) configuration, matching the upstream Maven artifact. This fixes a SIGSEGV crash (`signal 11, SEGV_MAPERR, fault addr 0x8`) in `libtensorflowlite_jni.so` during inference on older ARM64 devices (e.g. Galaxy S7/S9, Android 12) reported in [FairScan#155](https://github.com/pynicolas/FairScan/issues/155).
+- **XNNPACK version upgraded**: The pinned XNNPACK dependency is patched at build time (in `ci/build-fdroid.sh` and `.github/workflows/build-fdroid-aar.yml`) to `e757940dbdcf` in **both** `tsl/workspace2.bzl` and `tensorflow/workspace2.bzl` to match the API version expected by the `xnnpack_delegate.cc` in `tflite/delegates/xnnpack/`. Both files must be patched because Bazel uses whichever definition is loaded first. The old versions (`a50369c0fdd1` in TSL, `9ddeb74f9f68` in TF) lacked newer APIs (`xnn_binary_operator`, `xnn_reduce_operator`, `XNN_FLAG_SLOW_CONSISTENT_ARITHMETIC`, etc.) required by the delegate code. The TF submodule itself remains unmodified to avoid CI checkout failures.
+- **pthreadpool version upgraded**: The pinned pthreadpool dependency is also patched at build time from `b8374f80e420` (TSL) / `4fe0e1e183925` (TF) to `c2ba5c50bb58` to match the version required by XNNPACK `e757940dbdcf`. The old pthreadpool lacked `*_dynamic_*` task types (`pthreadpool_task_1d_tile_1d_dynamic_with_id_t`, etc.) needed by the newer XNNPACK.
+- **cpuinfo version upgraded**: The pinned cpuinfo dependency is also patched at build time from `5e63739504f0` (TSL) / `3c8b1533ac03` (TF) to `33ed0be77d77` to match the version required by XNNPACK `e757940dbdcf`. The old cpuinfo lacked newer CPU microarchitecture identifiers (`cpuinfo_uarch_cortex_x4`, `cpuinfo_uarch_oryon`) referenced by XNNPACK's hardware configuration code.
+- **KleidiAI version upgraded**: The pinned KleidiAI dependency is patched at build time from `cddf991af5de` (TF) to `45bf06030727` to match the version required by XNNPACK `e757940dbdcf`. The URL is also changed from GitLab (`gitlab.arm.com/kleidi/kleidiai`) to GitHub (`github.com/ARM-software/kleidiai`). The old KleidiAI lacked ARM SME microkernel headers (`kai_rhs_imatmul_pack_kxn_qsi8cxp2vlx4sb_qs8cx_f32_i32_sme.h`) referenced by XNNPACK's `packing.cc`.
+
+### Background
+
+The upstream LiteRT repo has an inherent version mismatch: the `xnnpack_delegate.cc` in `tflite/delegates/xnnpack/` uses newer XNNPACK APIs (`xnn_binary_operator`, `xnn_reduce_operator`, etc.), but the XNNPACK version pinned via the TF submodule (`third_party/tensorflow/.../workspace2.bzl`) is older and lacks these APIs. This mismatch exists in the public repo but does not affect Google because:
+
+1. **Google internally** builds the official Maven artifact with Blaze (not Bazel), which resolves a matching newer XNNPACK version.
+2. **CMake users** use `tflite/tools/cmake/modules/xnnpack.cmake`, which pins its own XNNPACK version independently of the TF submodule.
+3. **Bazel users** who disable XNNPACK (as the original fork did) never compile the delegate, so the mismatch is hidden.
+
+Only Bazel builds with XNNPACK enabled — our case — hit the compile errors. The original fork author likely encountered these errors and disabled XNNPACK as a workaround, which inadvertently caused the SIGSEGV crash on older devices. See also [LiteRT#1972](https://github.com/google-ai-edge/LiteRT/issues/1972) and [LiteRT#3207](https://github.com/google-ai-edge/LiteRT/issues/3207) for related upstream reports about the outdated TF submodule.
+
+### Notes
+
+- The AAR size increases by ~10–20 MB due to XNNPACK native code for 4 ABIs — this is expected and matches the upstream artifact.
+- The Bazel repository cache must be regenerated (happens automatically in Phase 1 of the GitHub Actions workflow).
+
+---
+
 ## [1.4.1-patch] - 2026-04-15
 
 ### Overview

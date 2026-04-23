@@ -43,7 +43,6 @@
 # Generating the repository cache (run once with network access):
 #   bazel fetch //tflite/java:tensorflow-lite \
 #     --config=android --cpu=armeabi-v7a --fat_apk_cpu=arm64-v8a \
-#     --define=tflite_with_xnnpack=false --define=tflite_kernel_use_xnnpack=false \
 #     --repository_cache=/path/to/cache
 #   # Then archive /path/to/cache for offline use.
 #
@@ -358,7 +357,50 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 5. Build the AAR
+# 5. Patch XNNPACK version for API compatibility
+# ---------------------------------------------------------------------------
+# The xnnpack_delegate.cc in tflite/ requires a newer XNNPACK than what the
+# TF submodule pins. Patch workspace2.bzl at build time to avoid modifying
+# the submodule (which would break CI checkout).
+# Patch all workspace files that pin XNNPACK to ensure the correct version
+# is used regardless of which file Bazel loads first.
+XNNPACK_PATCH_FILES=(
+  "$TF_DIR/third_party/xla/third_party/tsl/workspace2.bzl"
+  "$TF_DIR/tensorflow/workspace2.bzl"
+)
+XNNPACK_PATCHED=0
+for XNNPACK_BZL in "${XNNPACK_PATCH_FILES[@]}"; do
+  if [ -f "$XNNPACK_BZL" ]; then
+    info "Patching XNNPACK version in $XNNPACK_BZL..."
+    sed -i.bak \
+      -e 's|a50369c0fdd15f0f35b1a91c964644327a88d480|e757940dbdcf465fd9eb7901ce73f4ff21387663|g' \
+      -e 's|ca3a5316b8161214f8f22a578fb638f1fccd0585eee40301363ffd026310379a|eb01826f3820284b89076e94e4458a7326dc6986bdaf5cdc61bb2f26db12aab1|g' \
+      -e 's|9ddeb74f9f6866174d61888947e4aa9ffe963b1b|e757940dbdcf465fd9eb7901ce73f4ff21387663|g' \
+      -e 's|0e5d5c16686beff813e3946b26ca412f28acaf611228d20728ffb6479264fe19|eb01826f3820284b89076e94e4458a7326dc6986bdaf5cdc61bb2f26db12aab1|g' \
+      -e 's|b8374f80e42010941bda6c85b0e3f1a1bd77a1e0|c2ba5c50bb58d1397b693740cf75fad836a0d1bf|g' \
+      -e 's|b96413b10dd8edaa4f6c0a60c6cf5ef55eebeef78164d5d69294c8173457f0ec|516ba8d05c30e016d7fd7af6a7fc74308273883f857faf92bc9bb630ab6dba2c|g' \
+      -e 's|4fe0e1e183925bf8cfa6aae24237e724a96479b8|c2ba5c50bb58d1397b693740cf75fad836a0d1bf|g' \
+      -e 's|a4cf06de57bfdf8d7b537c61f1c3071bce74e57524fe053e0bbd2332feca7f95|516ba8d05c30e016d7fd7af6a7fc74308273883f857faf92bc9bb630ab6dba2c|g' \
+      -e 's|5e63739504f0f8e18e941bd63b2d6d42536c7d90|33ed0be77d7767d0e2010e2c3cf972ef36c7c307|g' \
+      -e 's|18eca9bc8d9c4ce5496d0d2be9f456d55cbbb5f0639a551ce9c8bac2e84d85fe|b7be544ab78e16f5a89a7184c60e234fab7bbd84148da6f7a36b5a2e9759446c|g' \
+      -e 's|3c8b1533ac03dd6531ab6e7b9245d488f13a82a5|33ed0be77d7767d0e2010e2c3cf972ef36c7c307|g' \
+      -e 's|5d7f00693e97bd7525753de94be63f99b0490ae6855df168f5a6b2cfc452e49e|b7be544ab78e16f5a89a7184c60e234fab7bbd84148da6f7a36b5a2e9759446c|g' \
+      -e 's|cddf991af5de49fd34949fa39690e4e906e04074|45bf06030727ce049793ce6749e943cc2ea896fe|g' \
+      -e 's|88233e427be6579560073267575f00f3b5fc370a31a43bbdd87a1810bd4bf1b6|919683ceeedd6dd9db26c341eef448f9096616dfc4e9270e0209e481921e78e4|g' \
+      -e 's|gitlab.arm.com/kleidi/kleidiai/-/archive|github.com/ARM-software/kleidiai/archive|g' \
+      "$XNNPACK_BZL"
+    rm -f "${XNNPACK_BZL}.bak"
+    XNNPACK_PATCHED=$((XNNPACK_PATCHED + 1))
+  fi
+done
+if [ "$XNNPACK_PATCHED" -gt 0 ]; then
+  info "XNNPACK + pthreadpool + cpuinfo + KleidiAI patched in $XNNPACK_PATCHED file(s)."
+else
+  warn "No workspace2.bzl files found — skipping XNNPACK patch."
+fi
+
+# ---------------------------------------------------------------------------
+# 6. Build the AAR
 # ---------------------------------------------------------------------------
 info "Building tensorflow-lite.aar (ABIs: $FAT_APK_CPUS)..."
 
@@ -377,9 +419,6 @@ BAZEL_FLAGS=(
   --fat_apk_cpu="$FAT_APK_CPUS"
   --define=android_dexmerger_tool=d8_dexmerger
   --define=android_incremental_dexing_tool=d8_dexbuilder
-  --define=tflite_with_xnnpack=false
-  --define=tflite_kernel_use_xnnpack=false
-  --copt=-DTF_LITE_DISABLE_X86_NEON
   --repo_env=HERMETIC_PYTHON_VERSION=3.12
 )
 
@@ -421,7 +460,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 6. Normalize AAR for reproducibility
+# 7. Normalize AAR for reproducibility
 # ---------------------------------------------------------------------------
 AAR_PATH="$REPO_ROOT/bazel-bin/tflite/java/tensorflow-lite.aar"
 [ -f "$AAR_PATH" ] || die "AAR not found at expected path: $AAR_PATH"
@@ -447,7 +486,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 7. Output checksum
+# 8. Output checksum
 # ---------------------------------------------------------------------------
 if command -v sha256sum >/dev/null 2>&1; then
   AAR_SHA="$(sha256sum "$OUTPUT_DIR/tensorflow-lite.aar" | cut -d' ' -f1)"

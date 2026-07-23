@@ -4,9 +4,31 @@
 >
 > The upstream LiteRT project publishes pre-built AARs to Maven Central, but those artifacts include build-time references to proprietary Google Play libraries (`com.google.android.play:ai-delivery`), which prevents F-Droid from accepting apps that depend on them.
 >
-> This fork contains CI workflow and build system patches (Dockerfile, WORKSPACE, Bazel BUILD files, visibility workarounds) to produce a functionally equivalent `tensorflow-lite.aar` entirely from source. See [CHANGELOG.md](./CHANGELOG.md) for a detailed list of changes.
+> This fork contains CI workflow and build system patches (Dockerfile, WORKSPACE, Bazel BUILD files, visibility workarounds) to produce a F-Droid-compatible `tensorflow-lite.aar` from source. See [CHANGELOG.md](./CHANGELOG.md) for a detailed list of changes.
 >
-> **No application logic has been modified.** The resulting AAR is functionally identical to the upstream release, minus the XNNPACK delegate (disabled due to API version mismatch with the pinned dependency).
+> **No application logic has been modified.** The resulting AAR is based on the upstream sources, but full behavioral
+equivalence with Google's official binaries is not guaranteed, minus the XNNPACK delegate (disabled due to API version mismatch with the pinned dependency).
+
+## Compatibility and Maintenance Status
+
+This fork provides a community-built Android AAR intended to support
+F-Droid-compatible builds from FLOSS source code.
+
+It is not an official Google release and is not guaranteed to be fully
+compatible with Google's published LiteRT artifacts for every model,
+operator, delegate, ABI, or Android device.
+
+The artifact has only been tested with a limited set of applications and
+models. Successful use by one application does not establish general
+compatibility.
+
+This fork is maintained on a best-effort basis. The maintainer does not plan
+to provide long-term tracking of upstream LiteRT releases or investigate
+compatibility issues for every model.
+
+Minimal reproducers and focused pull requests with regression tests are
+welcome, but there is no guarantee that reported compatibility issues will
+be investigated or fixed.
 
 ## Usage
 

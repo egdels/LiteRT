@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Known Issues
+
+- A compatibility issue has been reported for an ALBERT transformer model:
+  inference completes, but sigmoid outputs saturate to `0.0` or `1.0`,
+  while Google's official LiteRT runtime produces the expected probabilities.
+- The issue reportedly also occurs with XNNPACK disabled.
+- The cause has not yet been identified.
+- Until this is resolved, the artifact must not be assumed to be a universal
+  drop-in replacement for Google's official LiteRT binaries.
+
 ## [1.4.1-patch2] - 2026-04-23
 
 ### Changed
